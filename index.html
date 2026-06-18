@@ -1,0 +1,1403 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Paddy Purchase Management</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <div class="dashboard-app" id="dashboardApp">
+      <aside class="sidebar" id="sidebar">
+        <div class="sidebar-top">
+          <div class="brand-block">
+            <div class="brand-mark">PM</div>
+            <div class="brand-copy">
+              <strong>Paddy Manager</strong>
+              <span>Procurement Control Desk</span>
+            </div>
+          </div>
+          <button class="sidebar-toggle" id="sidebarToggle" type="button" aria-label="Toggle sidebar">
+            <span></span>
+            <span></span>
+            <span></span>
+          </button>
+        </div>
+
+
+        <nav class="sidebar-nav" aria-label="Main navigation">
+          <button class="nav-item active" type="button" data-view="dashboard">
+            <span class="nav-icon">◫</span>
+            <span class="nav-label">Dashboard</span>
+          </button>
+          <button class="nav-item" type="button" data-view="godown-entry">
+            <span class="nav-icon">▣</span>
+            <span class="nav-label">Godown Entry</span>
+          </button>
+          <button class="nav-item" type="button" data-view="home-entry">
+            <span class="nav-icon">⌂</span>
+            <span class="nav-label">Home Purchase Entry</span>
+          </button>
+          <button class="nav-item" type="button" data-view="selling">
+            <span class="nav-icon">⇄</span>
+            <span class="nav-label">Selling</span>
+          </button>
+          <button class="nav-item" type="button" data-view="reports">
+            <span class="nav-icon">◧</span>
+            <span class="nav-label">Reports</span>
+          </button>
+          <button class="nav-item" type="button" data-view="payments">
+            <span class="nav-icon">◍</span>
+            <span class="nav-label">Payments</span>
+          </button>
+          <button class="nav-item" type="button" data-view="settings">
+            <span class="nav-icon">⚙</span>
+            <span class="nav-label">Settings</span>
+          </button>
+        </nav>
+
+        <div class="sidebar-footer">
+          <div class="sidebar-metric">
+            <span>Mode</span>
+            <strong>Frontend Demo</strong>
+          </div>
+          <div class="sidebar-metric">
+            <span>Focus</span>
+            <strong>Fast Entry</strong>
+          </div>
+        </div>
+      </aside>
+
+      <div class="main-panel">
+        <header class="topbar">
+          <div class="topbar-copy">
+            <p class="eyebrow" id="pageEyebrow">Operations Overview</p>
+            <h1 id="pageTitle">Paddy Purchase Dashboard</h1>
+            <p class="page-copy" id="pageCopy">
+              Track procurement, monitor payable balances, and switch between purchase modules without leaving the page.
+            </p>
+          </div>
+        </header>
+
+        <main class="content-scroller">
+          <section class="view active" data-view-panel="dashboard">
+            <div class="dashboard-grid stats-grid">
+              <article class="card stat-card">
+                <p class="card-kicker">Today</p>
+                <h2>Today's Purchases</h2>
+                <strong class="stat-value">Rs 2,48,500</strong>
+                <span class="stat-meta">34 supplier entries recorded</span>
+              </article>
+              <article class="card stat-card">
+                <p class="card-kicker">Today</p>
+                <h2>Today's Sales</h2>
+                <strong class="stat-value">Rs 1,72,000</strong>
+                <span class="stat-meta">12 outgoing slips processed</span>
+              </article>
+              <article class="card stat-card">
+                <p class="card-kicker">Finance</p>
+                <h2>Pending Payments</h2>
+                <strong class="stat-value">Rs 84,300</strong>
+                <span class="stat-meta">8 parties awaiting settlement</span>
+              </article>
+              <article class="card stat-card">
+                <p class="card-kicker">Stock</p>
+                <h2>Total Bags Purchased</h2>
+                <strong class="stat-value">1,280</strong>
+                <span class="stat-meta">Across godown and home purchase channels</span>
+              </article>
+            </div>
+
+            <article class="card dashboard-table-card">
+              <div class="card-head">
+                <div>
+                  <p class="card-kicker">Recent Activity</p>
+                  <h2>Recent Transactions</h2>
+                </div>
+              </div>
+              <div class="table-wrap">
+                <table class="entries-table dashboard-table">
+                  <thead>
+                    <tr>
+                      <th>Time</th>
+                      <th>Slip</th>
+                      <th>Type</th>
+                      <th>Party</th>
+                      <th>Bags</th>
+                      <th>Amount</th>
+                      <th>Status</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>09:15 AM</td>
+                      <td>GD-1042</td>
+                      <td>Godown Purchase</td>
+                      <td>ABC Traders</td>
+                      <td>84</td>
+                      <td>Rs 68,340.00</td>
+                      <td><span class="status-chip success">Settled</span></td>
+                    </tr>
+                    <tr>
+                      <td>10:40 AM</td>
+                      <td>HM-207</td>
+                      <td>Home Purchase</td>
+                      <td>Farmer B</td>
+                      <td>36</td>
+                      <td>Rs 24,710.00</td>
+                      <td><span class="status-chip pending">Advance Pending</span></td>
+                    </tr>
+                    <tr>
+                      <td>12:05 PM</td>
+                      <td>SL-519</td>
+                      <td>Selling</td>
+                      <td>Eastern Rice Mill</td>
+                      <td>50</td>
+                      <td>Rs 42,000.00</td>
+                      <td><span class="status-chip success">Completed</span></td>
+                    </tr>
+                    <tr>
+                      <td>02:20 PM</td>
+                      <td>GD-1043</td>
+                      <td>Godown Purchase</td>
+                      <td>Farmer Group A</td>
+                      <td>60</td>
+                      <td>Rs 47,250.00</td>
+                      <td><span class="status-chip review">Under Review</span></td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </article>
+          </section>
+
+          <section class="view" data-view-panel="godown-entry">
+            <div class="module-layout">
+              <section class="form-column">
+                <form id="godownForm" novalidate>
+                  <article class="card">
+                    <div class="card-head">
+                      <div>
+                        <p class="card-kicker">Section 1</p>
+                        <h2>Basic Information</h2>
+                      </div>
+                    </div>
+
+                    <div class="form-grid two-col">
+                      <label class="field">
+                        <span>Date</span>
+                        <input type="date" id="godownEntryDate" name="godownEntryDate" />
+                      </label>
+
+                      <label class="field">
+                        <span>Slip Number <em>*</em></span>
+                        <input
+                          type="text"
+                          id="godownSlipNumber"
+                          name="godownSlipNumber"
+                          placeholder="Enter slip number"
+                          required
+                        />
+                      </label>
+
+                      <label class="field">
+                        <span>Vehicle Number</span>
+                        <input
+                          type="text"
+                          id="godownVehicleNumber"
+                          name="godownVehicleNumber"
+                          placeholder="JH05AB1234"
+                        />
+                      </label>
+
+                      <label class="field">
+                        <span>Supplier Name</span>
+                        <select id="godownSupplierName" name="godownSupplierName">
+                          <option value="">Select supplier</option>
+                          <option>ABC Traders</option>
+                          <option>XYZ Suppliers</option>
+                          <option>Farmer Group A</option>
+                        </select>
+                      </label>
+                    </div>
+                  </article>
+
+                  <article class="card">
+                    <div class="card-head">
+                      <div>
+                        <p class="card-kicker">Section 2</p>
+                        <h2>Weight Details</h2>
+                      </div>
+                    </div>
+
+                    <div class="form-grid weight-grid">
+                      <label class="field">
+                        <span>Gross Weight (Kg)</span>
+                        <input type="number" id="godownGrossWeight" min="0" step="0.01" placeholder="1000" />
+                      </label>
+
+                      <label class="field">
+                        <span>Dust Deduction (Kg)</span>
+                        <input type="number" id="godownDustDeduction" min="0" step="0.01" value="0" />
+                      </label>
+
+                      <label class="field">
+                        <span>Final Weight (Kg)</span>
+                        <input type="text" id="godownFinalWeight" readonly />
+                      </label>
+
+                      <label class="field">
+                        <span>Total Bags</span>
+                        <input type="number" id="godownTotalBags" min="0" step="1" placeholder="20" />
+                      </label>
+
+                      <label class="field span-2">
+                        <span>Average Weight (Kg/Bag)</span>
+                        <input type="text" id="godownAverageWeight" readonly />
+                      </label>
+                    </div>
+                  </article>
+
+                  <article class="card">
+                    <div class="card-head card-head-inline">
+                      <div>
+                        <p class="card-kicker">Section 3</p>
+                        <h2>Paddy Entries</h2>
+                      </div>
+                      <button class="secondary-btn" type="button" data-add-row="godown">Add Entry</button>
+                    </div>
+
+                    <div class="table-wrap">
+                      <table class="entries-table">
+                        <thead>
+                          <tr>
+                            <th>Paddy Type</th>
+                            <th>No. of Bags</th>
+                            <th>Rate / Kg</th>
+                            <th>Weight</th>
+                            <th>Amount</th>
+                            <th></th>
+                          </tr>
+                        </thead>
+                        <tbody id="godownEntriesBody"></tbody>
+                      </table>
+                    </div>
+                  </article>
+
+                  <article class="card">
+                    <div class="card-head">
+                      <div>
+                        <p class="card-kicker">Section 4</p>
+                        <h2>Moisture Deduction</h2>
+                      </div>
+                    </div>
+
+                    <div class="form-grid two-col">
+                      <label class="field">
+                        <span>Moisture Deduction (Kg)</span>
+                        <input type="number" id="godownMoistureDeduction" min="0" step="0.01" value="0" />
+                      </label>
+
+                      <label class="field">
+                        <span>Moisture Note</span>
+                        <textarea
+                          id="godownMoistureNote"
+                          rows="4"
+                          placeholder="16% moisture&#10;Reduced 10kg"
+                        ></textarea>
+                      </label>
+                    </div>
+                  </article>
+
+                  <article class="card">
+                    <div class="card-head">
+                      <div>
+                        <p class="card-kicker">Section 5</p>
+                        <h2>Loading Charges</h2>
+                      </div>
+                    </div>
+
+                    <div class="form-grid single-col">
+                      <label class="field">
+                        <span>Loading Unloading Discount</span>
+                        <input type="number" id="godownLoadingDiscount" min="0" step="0.01" value="0" />
+                      </label>
+                    </div>
+                  </article>
+
+                  <article class="card">
+                    <div class="card-head">
+                      <div>
+                        <p class="card-kicker">Section 6</p>
+                        <h2>Advance Payment</h2>
+                      </div>
+                    </div>
+
+                    <div class="form-grid single-col">
+                      <label class="field">
+                        <span>Advance Payment</span>
+                        <input type="number" id="godownAdvancePayment" min="0" step="0.01" value="0" />
+                      </label>
+                    </div>
+                  </article>
+                </form>
+              </section>
+
+              <aside class="summary-column">
+                <article class="card summary-card">
+                  <div class="summary-head">
+                    <div>
+                      <p class="card-kicker">Live Summary</p>
+                      <h2>Purchase Snapshot</h2>
+                    </div>
+                    <span class="summary-pill">Auto Updated</span>
+                  </div>
+
+                  <div class="summary-meta">
+                    <div>
+                      <span class="meta-label">Date</span>
+                      <strong id="godownSummaryDate">-</strong>
+                    </div>
+                    <div>
+                      <span class="meta-label">Slip</span>
+                      <strong id="godownSummarySlip">-</strong>
+                    </div>
+                    <div>
+                      <span class="meta-label">Vehicle</span>
+                      <strong id="godownSummaryVehicle">-</strong>
+                    </div>
+                    <div>
+                      <span class="meta-label">Supplier</span>
+                      <strong id="godownSummaryParty">-</strong>
+                    </div>
+                  </div>
+
+                  <div class="summary-list">
+                    <div class="summary-row"><span>Gross Weight</span><strong id="godownSummaryGrossWeight">0.00 Kg</strong></div>
+                    <div class="summary-row"><span>Dust Deduction</span><strong id="godownSummaryDustDeduction">0.00 Kg</strong></div>
+                    <div class="summary-row"><span>Final Weight</span><strong id="godownSummaryFinalWeight">0.00 Kg</strong></div>
+                    <div class="summary-row"><span>Total Bags</span><strong id="godownSummaryTotalBags">0</strong></div>
+                    <div class="summary-row"><span>Average Weight</span><strong id="godownSummaryAverageWeight">0.00 Kg</strong></div>
+                    <div class="summary-row"><span>Moisture Deduction</span><strong id="godownSummaryMoistureDeduction">0.00 Kg</strong></div>
+                    <div class="summary-row"><span>Net Weight</span><strong id="godownSummaryNetWeight">0.00 Kg</strong></div>
+                    <div class="summary-row"><span>Purchase Total</span><strong id="godownSummaryPurchaseTotal">Rs 0.00</strong></div>
+                    <div class="summary-row"><span>Loading Discount</span><strong id="godownSummaryLoadingDiscount">Rs 0.00</strong></div>
+                    <div class="summary-row"><span>Advance</span><strong id="godownSummaryAdvance">Rs 0.00</strong></div>
+                  </div>
+
+                  <div class="summary-total">
+                    <span>Final Payable</span>
+                    <strong id="godownSummaryFinalPayable">Rs 0.00</strong>
+                  </div>
+
+                  <div class="print-only slip-print" id="godownPrintArea">
+                    <div class="print-title">
+                      <h3>Paddy Purchase Slip</h3>
+                      <p>Godown Purchase Entry</p>
+                    </div>
+                    <div class="print-grid">
+                      <div><span>Date</span><strong id="godownPrintDate">-</strong></div>
+                      <div><span>Slip Number</span><strong id="godownPrintSlip">-</strong></div>
+                      <div><span>Vehicle</span><strong id="godownPrintVehicle">-</strong></div>
+                      <div><span>Supplier</span><strong id="godownPrintParty">-</strong></div>
+                      <div><span>Gross Weight</span><strong id="godownPrintGrossWeight">0.00 Kg</strong></div>
+                      <div><span>Dust</span><strong id="godownPrintDustDeduction">0.00 Kg</strong></div>
+                      <div><span>Final Weight</span><strong id="godownPrintFinalWeight">0.00 Kg</strong></div>
+                      <div><span>Average Weight</span><strong id="godownPrintAverageWeight">0.00 Kg</strong></div>
+                      <div><span>Moisture Deduction</span><strong id="godownPrintMoistureDeduction">0.00 Kg</strong></div>
+                      <div><span>Net Weight</span><strong id="godownPrintNetWeight">0.00 Kg</strong></div>
+                    </div>
+                    <div class="print-note-block">
+                      <span>Moisture Notes</span>
+                      <p id="godownPrintNote">-</p>
+                    </div>
+                    <table class="print-table">
+                      <thead>
+                        <tr>
+                          <th>Paddy Type</th>
+                          <th>Bags</th>
+                          <th>Rate / Kg</th>
+                          <th>Weight</th>
+                          <th>Amount</th>
+                        </tr>
+                      </thead>
+                      <tbody id="godownPrintEntriesBody"></tbody>
+                    </table>
+                    <div class="print-totals">
+                      <div><span>Purchase Total</span><strong id="godownPrintPurchaseTotal">Rs 0.00</strong></div>
+                      <div><span>Loading Charges</span><strong id="godownPrintLoadingDiscount">Rs 0.00</strong></div>
+                      <div><span>Advance</span><strong id="godownPrintAdvance">Rs 0.00</strong></div>
+                      <div><span>Final Payable</span><strong id="godownPrintFinalPayable">Rs 0.00</strong></div>
+                    </div>
+                    <div class="signature-row">
+                      <div class="signature-box"><span>Authorized Signature</span></div>
+                      <div class="signature-box"><span>Supplier Signature</span></div>
+                    </div>
+                  </div>
+                </article>
+              </aside>
+            </div>
+
+            <div class="sticky-actions" data-sticky-actions="godown-entry">
+              <button class="primary-btn" type="button" data-action="save" data-module="godown">Save</button>
+              <button class="primary-btn alt" type="button" data-action="print" data-module="godown">Save &amp; Print</button>
+              <button class="ghost-btn" type="button" data-action="reset" data-module="godown">Reset</button>
+            </div>
+          </section>
+
+          <section class="view" data-view-panel="home-entry">
+            <div class="module-layout">
+              <section class="form-column">
+                <form id="homeForm" novalidate>
+                  <article class="card">
+                    <div class="card-head">
+                      <div>
+                        <p class="card-kicker">Section 1</p>
+                        <h2>Basic Details</h2>
+                      </div>
+                    </div>
+
+                    <div class="form-grid two-col">
+                      <label class="field">
+                        <span>Date</span>
+                        <input type="date" id="homeEntryDate" />
+                      </label>
+
+                      <label class="field">
+                        <span>Slip Number <em>*</em></span>
+                        <input type="text" id="homeSlipNumber" placeholder="Enter slip number" required />
+                      </label>
+
+                      <label class="field">
+                        <span>Farmer Name</span>
+                        <input type="text" id="homeFarmerName" placeholder="Enter farmer name" />
+                      </label>
+
+                      <label class="field">
+                        <span>Driver Name</span>
+                        <select id="homeDriverName">
+                          <option value="">Select driver</option>
+                          <option>Driver A</option>
+                          <option>Driver B</option>
+                          <option>Driver C</option>
+                        </select>
+                      </label>
+
+                      <label class="field span-2">
+                        <span>Vehicle Number</span>
+                        <input type="text" id="homeVehicleNumber" placeholder="JH05AB1234" />
+                      </label>
+                    </div>
+                  </article>
+
+                  <article class="card">
+                    <div class="card-head card-head-inline">
+                      <div>
+                        <p class="card-kicker">Section 2</p>
+                        <h2>Purchase Entry Table</h2>
+                      </div>
+                      <button class="secondary-btn" type="button" data-add-row="home">Add Entry</button>
+                    </div>
+
+                    <div class="table-wrap">
+                      <table class="entries-table">
+                        <thead>
+                          <tr>
+                            <th>Paddy Type</th>
+                            <th>No. of Bags</th>
+                            <th>Weight / Bag</th>
+                            <th>Total Weight</th>
+                            <th>Rate / Kg</th>
+                            <th>Amount</th>
+                            <th></th>
+                          </tr>
+                        </thead>
+                        <tbody id="homeEntriesBody">
+                          <tr>
+                            <td>
+                              <select class="entry-type">
+                                <option value="">Select type</option>
+                                <option>Basmati</option>
+                                <option>Swarna</option>
+                                <option>IR64</option>
+                                <option>PR126</option>
+                              </select>
+                            </td>
+                            <td><input class="entry-bags" type="number" min="0" step="1" placeholder="0" /></td>
+                            <td><input class="entry-weight-per-bag" type="number" min="0" step="0.01" placeholder="0.00" /></td>
+                            <td><input class="entry-weight" type="text" readonly value="0.00 Kg" /></td>
+                            <td><input class="entry-rate" type="number" min="0" step="0.01" placeholder="0.00" /></td>
+                            <td><input class="entry-amount" type="text" readonly value="Rs 0.00" /></td>
+                            <td><button class="icon-btn delete-row-btn" type="button" aria-label="Delete row">&#10005;</button></td>
+                          </tr>
+                        </tbody>
+                      </table>
+                    </div>
+                  </article>
+
+                  <article class="card">
+                    <div class="card-head">
+                      <div>
+                        <p class="card-kicker">Section 3</p>
+                        <h2>Advance Payment</h2>
+                      </div>
+                    </div>
+
+                    <div class="form-grid single-col">
+                      <label class="field">
+                        <span>Advance Payment</span>
+                        <input type="number" id="homeAdvancePayment" min="0" step="0.01" value="0" />
+                      </label>
+                    </div>
+                  </article>
+                </form>
+              </section>
+
+              <aside class="summary-column">
+                <article class="card summary-card">
+                  <div class="summary-head">
+                    <div>
+                      <p class="card-kicker">Live Summary</p>
+                      <h2>Home Purchase Snapshot</h2>
+                    </div>
+                    <span class="summary-pill">Auto Updated</span>
+                  </div>
+
+                  <div class="summary-meta">
+                    <div>
+                      <span class="meta-label">Date</span>
+                      <strong id="homeSummaryDate">-</strong>
+                    </div>
+                    <div>
+                      <span class="meta-label">Slip</span>
+                      <strong id="homeSummarySlip">-</strong>
+                    </div>
+                    <div>
+                      <span class="meta-label">Farmer</span>
+                      <strong id="homeSummaryParty">-</strong>
+                    </div>
+                    <div>
+                      <span class="meta-label">Driver</span>
+                      <strong id="homeSummaryDriver">-</strong>
+                    </div>
+                  </div>
+
+                  <div class="summary-list">
+                    <div class="summary-row"><span>Vehicle Number</span><strong id="homeSummaryVehicle">-</strong></div>
+                    <div class="summary-row"><span>Total Bags</span><strong id="homeSummaryTotalBags">0</strong></div>
+                    <div class="summary-row"><span>Total Weight</span><strong id="homeSummaryTotalWeight">0.00 Kg</strong></div>
+                    <div class="summary-row"><span>Purchase Amount</span><strong id="homeSummaryPurchaseTotal">Rs 0.00</strong></div>
+                    <div class="summary-row"><span>Advance</span><strong id="homeSummaryAdvance">Rs 0.00</strong></div>
+                  </div>
+
+                  <div class="summary-total">
+                    <span>Final Payable</span>
+                    <strong id="homeSummaryFinalPayable">Rs 0.00</strong>
+                  </div>
+
+                  <div class="print-only slip-print" id="homePrintArea">
+                    <div class="print-title">
+                      <h3>Paddy Purchase Slip</h3>
+                      <p>Home Purchase Entry</p>
+                    </div>
+                    <div class="print-grid">
+                      <div><span>Date</span><strong id="homePrintDate">-</strong></div>
+                      <div><span>Slip Number</span><strong id="homePrintSlip">-</strong></div>
+                      <div><span>Farmer Name</span><strong id="homePrintParty">-</strong></div>
+                      <div><span>Driver Name</span><strong id="homePrintDriver">-</strong></div>
+                      <div><span>Vehicle Number</span><strong id="homePrintVehicle">-</strong></div>
+                      <div><span>Total Bags</span><strong id="homePrintTotalBags">0</strong></div>
+                      <div><span>Total Weight</span><strong id="homePrintTotalWeight">0.00 Kg</strong></div>
+                      <div><span>Advance</span><strong id="homePrintAdvance">Rs 0.00</strong></div>
+                    </div>
+                    <table class="print-table">
+                      <thead>
+                        <tr>
+                          <th>Paddy Type</th>
+                          <th>Bags</th>
+                          <th>Weight / Bag</th>
+                          <th>Total Weight</th>
+                          <th>Rate / Kg</th>
+                          <th>Amount</th>
+                        </tr>
+                      </thead>
+                      <tbody id="homePrintEntriesBody"></tbody>
+                    </table>
+                    <div class="print-totals">
+                      <div><span>Purchase Amount</span><strong id="homePrintPurchaseTotal">Rs 0.00</strong></div>
+                      <div><span>Advance</span><strong id="homePrintAdvanceTotal">Rs 0.00</strong></div>
+                      <div><span>Final Payable</span><strong id="homePrintFinalPayable">Rs 0.00</strong></div>
+                    </div>
+                    <div class="signature-row">
+                      <div class="signature-box"><span>Authorized Signature</span></div>
+                      <div class="signature-box"><span>Farmer Signature</span></div>
+                    </div>
+                  </div>
+                </article>
+              </aside>
+            </div>
+
+            <div class="sticky-actions" data-sticky-actions="home-entry">
+              <button class="primary-btn" type="button" data-action="save" data-module="home">Save</button>
+              <button class="primary-btn alt" type="button" data-action="print" data-module="home">Save &amp; Print</button>
+              <button class="ghost-btn" type="button" data-action="reset" data-module="home">Reset</button>
+            </div>
+          </section>
+
+          <section class="view" data-view-panel="selling">
+            <div class="module-layout">
+              <section class="form-column">
+                <form id="sellingForm" novalidate>
+                  <article class="card">
+                    <div class="card-head">
+                      <div>
+                        <p class="card-kicker">Section 1</p>
+                        <h2>Basic Information</h2>
+                      </div>
+                    </div>
+
+                    <div class="form-grid two-col">
+                      <label class="field">
+                        <span>Date</span>
+                        <input type="date" id="sellingEntryDate" name="sellingEntryDate" />
+                      </label>
+
+                      <label class="field">
+                        <span>Slip Number <em>*</em></span>
+                        <input
+                          type="text"
+                          id="sellingSlipNumber"
+                          name="sellingSlipNumber"
+                          placeholder="Enter slip number"
+                          required
+                        />
+                      </label>
+
+                      <label class="field">
+                        <span>Vehicle Number</span>
+                        <input
+                          type="text"
+                          id="sellingVehicleNumber"
+                          name="sellingVehicleNumber"
+                          placeholder="JH05AB1234"
+                        />
+                      </label>
+
+                      <label class="field">
+                        <span>Company Name</span>
+                        <select id="sellingCompanyName" name="sellingCompanyName">
+                          <option value="">Select company</option>
+                          <option>Eastern Rice Mill</option>
+                          <option>Shree Ganesh Foods</option>
+                          <option>Lakshmi Agro Traders</option>
+                        </select>
+                      </label>
+                    </div>
+                  </article>
+
+                  <article class="card">
+                    <div class="card-head">
+                      <div>
+                        <p class="card-kicker">Section 2</p>
+                        <h2>Weight Details</h2>
+                      </div>
+                    </div>
+
+                    <div class="form-grid weight-grid">
+                      <label class="field">
+                        <span>Gross Weight (Kg)</span>
+                        <input type="number" id="sellingGrossWeight" min="0" step="0.01" placeholder="1000" />
+                      </label>
+
+                      <label class="field">
+                        <span>Dust Deduction (Kg)</span>
+                        <input type="number" id="sellingDustDeduction" min="0" step="0.01" value="0" />
+                      </label>
+
+                      <label class="field">
+                        <span>Final Weight (Kg)</span>
+                        <input type="text" id="sellingFinalWeight" readonly />
+                      </label>
+
+                      <label class="field">
+                        <span>Total Bags</span>
+                        <input type="number" id="sellingTotalBags" min="0" step="1" placeholder="20" />
+                      </label>
+
+                      <label class="field span-2">
+                        <span>Average Weight (Kg/Bag)</span>
+                        <input type="text" id="sellingAverageWeight" readonly />
+                      </label>
+                    </div>
+                  </article>
+
+                  <article class="card">
+                    <div class="card-head card-head-inline">
+                      <div>
+                        <p class="card-kicker">Section 3</p>
+                        <h2>Selling Entries</h2>
+                      </div>
+                      <button class="secondary-btn" type="button" data-add-row="selling">Add Entry</button>
+                    </div>
+
+                    <div class="table-wrap">
+                      <table class="entries-table">
+                        <thead>
+                          <tr>
+                            <th>Paddy Type</th>
+                            <th>No. of Bags</th>
+                            <th>Rate / Kg</th>
+                            <th>Weight</th>
+                            <th>Amount</th>
+                            <th></th>
+                          </tr>
+                        </thead>
+                        <tbody id="sellingEntriesBody"></tbody>
+                      </table>
+                    </div>
+                  </article>
+
+                  <article class="card">
+                    <div class="card-head">
+                      <div>
+                        <p class="card-kicker">Section 4</p>
+                        <h2>Moisture Deduction</h2>
+                      </div>
+                    </div>
+
+                    <div class="form-grid two-col">
+                      <label class="field">
+                        <span>Moisture Deduction (Kg)</span>
+                        <input type="number" id="sellingMoistureDeduction" min="0" step="0.01" value="0" />
+                      </label>
+
+                      <label class="field">
+                        <span>Moisture Note</span>
+                        <textarea
+                          id="sellingMoistureNote"
+                          rows="4"
+                          placeholder="16% moisture&#10;Reduced 10kg"
+                        ></textarea>
+                      </label>
+                    </div>
+                  </article>
+
+                  <article class="card">
+                    <div class="card-head">
+                      <div>
+                        <p class="card-kicker">Section 5</p>
+                        <h2>Loading Charges</h2>
+                      </div>
+                    </div>
+
+                    <div class="form-grid single-col">
+                      <label class="field">
+                        <span>Loading Unloading Discount</span>
+                        <input type="number" id="sellingLoadingDiscount" min="0" step="0.01" value="0" />
+                      </label>
+                    </div>
+                  </article>
+
+                  <article class="card">
+                    <div class="card-head">
+                      <div>
+                        <p class="card-kicker">Section 6</p>
+                        <h2>Advance Payment</h2>
+                      </div>
+                    </div>
+
+                    <div class="form-grid single-col">
+                      <label class="field">
+                        <span>Advance Payment</span>
+                        <input type="number" id="sellingAdvancePayment" min="0" step="0.01" value="0" />
+                      </label>
+                    </div>
+                  </article>
+                </form>
+              </section>
+
+              <aside class="summary-column">
+                <article class="card summary-card">
+                  <div class="summary-head">
+                    <div>
+                      <p class="card-kicker">Live Summary</p>
+                      <h2>Selling Snapshot</h2>
+                    </div>
+                    <span class="summary-pill">Auto Updated</span>
+                  </div>
+
+                  <div class="summary-meta">
+                    <div>
+                      <span class="meta-label">Date</span>
+                      <strong id="sellingSummaryDate">-</strong>
+                    </div>
+                    <div>
+                      <span class="meta-label">Slip</span>
+                      <strong id="sellingSummarySlip">-</strong>
+                    </div>
+                    <div>
+                      <span class="meta-label">Vehicle</span>
+                      <strong id="sellingSummaryVehicle">-</strong>
+                    </div>
+                    <div>
+                      <span class="meta-label">Company</span>
+                      <strong id="sellingSummaryParty">-</strong>
+                    </div>
+                  </div>
+
+                  <div class="summary-list">
+                    <div class="summary-row"><span>Gross Weight</span><strong id="sellingSummaryGrossWeight">0.00 Kg</strong></div>
+                    <div class="summary-row"><span>Dust Deduction</span><strong id="sellingSummaryDustDeduction">0.00 Kg</strong></div>
+                    <div class="summary-row"><span>Final Weight</span><strong id="sellingSummaryFinalWeight">0.00 Kg</strong></div>
+                    <div class="summary-row"><span>Total Bags</span><strong id="sellingSummaryTotalBags">0</strong></div>
+                    <div class="summary-row"><span>Average Weight</span><strong id="sellingSummaryAverageWeight">0.00 Kg</strong></div>
+                    <div class="summary-row"><span>Moisture Deduction</span><strong id="sellingSummaryMoistureDeduction">0.00 Kg</strong></div>
+                    <div class="summary-row"><span>Net Weight</span><strong id="sellingSummaryNetWeight">0.00 Kg</strong></div>
+                    <div class="summary-row"><span>Selling Total</span><strong id="sellingSummaryPurchaseTotal">Rs 0.00</strong></div>
+                    <div class="summary-row"><span>Loading Discount</span><strong id="sellingSummaryLoadingDiscount">Rs 0.00</strong></div>
+                    <div class="summary-row"><span>Advance</span><strong id="sellingSummaryAdvance">Rs 0.00</strong></div>
+                  </div>
+
+                  <div class="summary-total">
+                    <span>Final Amount</span>
+                    <strong id="sellingSummaryFinalPayable">Rs 0.00</strong>
+                  </div>
+
+                  <div class="print-only slip-print" id="sellingPrintArea">
+                    <div class="print-title">
+                      <h3>Paddy Selling Slip</h3>
+                      <p>Selling Entry</p>
+                    </div>
+                    <div class="print-grid">
+                      <div><span>Date</span><strong id="sellingPrintDate">-</strong></div>
+                      <div><span>Slip Number</span><strong id="sellingPrintSlip">-</strong></div>
+                      <div><span>Vehicle</span><strong id="sellingPrintVehicle">-</strong></div>
+                      <div><span>Company</span><strong id="sellingPrintParty">-</strong></div>
+                      <div><span>Gross Weight</span><strong id="sellingPrintGrossWeight">0.00 Kg</strong></div>
+                      <div><span>Dust</span><strong id="sellingPrintDustDeduction">0.00 Kg</strong></div>
+                      <div><span>Final Weight</span><strong id="sellingPrintFinalWeight">0.00 Kg</strong></div>
+                      <div><span>Average Weight</span><strong id="sellingPrintAverageWeight">0.00 Kg</strong></div>
+                      <div><span>Moisture Deduction</span><strong id="sellingPrintMoistureDeduction">0.00 Kg</strong></div>
+                      <div><span>Net Weight</span><strong id="sellingPrintNetWeight">0.00 Kg</strong></div>
+                    </div>
+                    <div class="print-note-block">
+                      <span>Moisture Notes</span>
+                      <p id="sellingPrintNote">-</p>
+                    </div>
+                    <table class="print-table">
+                      <thead>
+                        <tr>
+                          <th>Paddy Type</th>
+                          <th>Bags</th>
+                          <th>Rate / Kg</th>
+                          <th>Weight</th>
+                          <th>Amount</th>
+                        </tr>
+                      </thead>
+                      <tbody id="sellingPrintEntriesBody"></tbody>
+                    </table>
+                    <div class="print-totals">
+                      <div><span>Selling Total</span><strong id="sellingPrintPurchaseTotal">Rs 0.00</strong></div>
+                      <div><span>Loading Charges</span><strong id="sellingPrintLoadingDiscount">Rs 0.00</strong></div>
+                      <div><span>Advance</span><strong id="sellingPrintAdvance">Rs 0.00</strong></div>
+                      <div><span>Final Amount</span><strong id="sellingPrintFinalPayable">Rs 0.00</strong></div>
+                    </div>
+                    <div class="signature-row">
+                      <div class="signature-box"><span>Authorized Signature</span></div>
+                      <div class="signature-box"><span>Company Signature</span></div>
+                    </div>
+                  </div>
+                </article>
+              </aside>
+            </div>
+
+            <div class="sticky-actions" data-sticky-actions="selling">
+              <button class="primary-btn" type="button" data-action="save" data-module="selling">Save</button>
+              <button class="primary-btn alt" type="button" data-action="print" data-module="selling">Save &amp; Print</button>
+              <button class="ghost-btn" type="button" data-action="reset" data-module="selling">Reset</button>
+            </div>
+          </section>
+
+          <section class="view" data-view-panel="reports">
+            <div class="reports-layout">
+              <article class="card reports-toolbar-card">
+                <div class="card-head reports-toolbar-head">
+                  <div>
+                    <p class="card-kicker">Records Desk</p>
+                    <h2>Reports</h2>
+                  </div>
+                  <span class="summary-pill">Print Ready</span>
+                </div>
+
+                <div class="reports-view-switcher" role="tablist" aria-label="Report views">
+                  <button class="reports-view-btn active" type="button" data-report-view="farmers">Farmers</button>
+                  <button class="reports-view-btn" type="button" data-report-view="suppliers">Suppliers</button>
+                  <button class="reports-view-btn" type="button" data-report-view="company">Company</button>
+                </div>
+
+                <label class="field reports-search-field">
+                  <span>Search Record</span>
+                  <input type="search" id="reportsSearchInput" placeholder="Search by party, slip, vehicle, sale, or purchase" />
+                </label>
+              </article>
+
+              <div class="reports-grid-head">
+                <span id="reportsListLabel">Farmer Reports</span>
+                <strong id="reportsListCount">0 Results</strong>
+              </div>
+
+              <div class="reports-grid" id="reportsCardGrid"></div>
+            </div>
+
+            <div class="reports-modal-backdrop hidden" id="reportsModalBackdrop">
+              <article class="reports-modal-card" role="dialog" aria-modal="true" aria-labelledby="reportDetailName">
+                <button class="reports-modal-close" id="reportsModalClose" type="button" aria-label="Close report details">&times;</button>
+                <div class="reports-modal-scroll">
+                  <div class="reports-modal-head">
+                    <div>
+                      <p class="card-kicker" id="reportDetailType">Farmer Report</p>
+                      <h2 id="reportDetailName">-</h2>
+                      <p class="page-copy" id="reportDetailMeta">-</p>
+                    </div>
+                    <div class="reports-balance-pill">
+                      <span>Report Total</span>
+                      <strong id="reportDetailTotal">Rs 0.00</strong>
+                    </div>
+                  </div>
+
+                  <div class="reports-detail-grid">
+                    <div class="reports-stat-box">
+                      <span>Record Type</span>
+                      <strong id="reportDetailKind">-</strong>
+                    </div>
+                    <div class="reports-stat-box">
+                      <span>Slip Number</span>
+                      <strong id="reportDetailSlip">-</strong>
+                    </div>
+                    <div class="reports-stat-box">
+                      <span>Vehicle</span>
+                      <strong id="reportDetailVehicle">-</strong>
+                    </div>
+                    <div class="reports-stat-box">
+                      <span>Total Weight</span>
+                      <strong id="reportDetailWeight">0.00 Kg</strong>
+                    </div>
+                  </div>
+
+                  <div class="reports-subsection">
+                    <div class="card-head card-head-inline reports-subsection-head">
+                      <div>
+                        <p class="card-kicker">Summary</p>
+                        <h2>Transaction Details</h2>
+                      </div>
+                    </div>
+                    <div class="reports-keyvalue-grid" id="reportDetailInfo"></div>
+                  </div>
+
+                  <div class="reports-subsection">
+                    <div class="card-head card-head-inline reports-subsection-head">
+                      <div>
+                        <p class="card-kicker">Items</p>
+                        <h2>Material Breakdown</h2>
+                      </div>
+                    </div>
+                    <div class="reports-items-list" id="reportItemsList"></div>
+                  </div>
+
+                  <div class="reports-subsection">
+                    <div class="card-head card-head-inline reports-subsection-head">
+                      <div>
+                        <p class="card-kicker">Action</p>
+                        <h2>Export Report</h2>
+                      </div>
+                    </div>
+                    <div class="reports-actions">
+                      <button class="primary-btn" id="reportPrintButton" type="button">Print PDF Report</button>
+                    </div>
+                  </div>
+                </div>
+              </article>
+            </div>
+
+            <div class="print-only reports-print-sheet" id="reportsPrintArea">
+              <div class="print-title">
+                <h3 id="reportPrintTitle">Paddy Report</h3>
+                <p id="reportPrintSubtitle">Report Summary</p>
+              </div>
+              <div class="print-grid">
+                <div><span>Party</span><strong id="reportPrintName">-</strong></div>
+                <div><span>Record Type</span><strong id="reportPrintKind">-</strong></div>
+                <div><span>Date</span><strong id="reportPrintDate">-</strong></div>
+                <div><span>Slip Number</span><strong id="reportPrintSlip">-</strong></div>
+                <div><span>Vehicle</span><strong id="reportPrintVehicle">-</strong></div>
+                <div><span>Total Weight</span><strong id="reportPrintWeight">0.00 Kg</strong></div>
+              </div>
+              <div class="print-note-block">
+                <span>Summary</span>
+                <p id="reportPrintSummary">-</p>
+              </div>
+              <table class="print-table">
+                <thead>
+                  <tr>
+                    <th>Material</th>
+                    <th>Bags</th>
+                    <th>Weight</th>
+                    <th>Rate / Kg</th>
+                    <th>Amount</th>
+                  </tr>
+                </thead>
+                <tbody id="reportPrintItemsBody"></tbody>
+              </table>
+              <div class="print-totals">
+                <div><span>Total Amount</span><strong id="reportPrintTotal">Rs 0.00</strong></div>
+              </div>
+              <div class="signature-row">
+                <div class="signature-box"><span>Authorized Signature</span></div>
+                <div class="signature-box"><span>Accounts Signature</span></div>
+              </div>
+            </div>
+          </section>
+
+          <section class="view" data-view-panel="payments">
+            <div class="payments-layout">
+              <article class="card payments-toolbar-card">
+                <div class="card-head payments-toolbar-head">
+                  <div>
+                    <p class="card-kicker">Settlement Desk</p>
+                    <h2>Payments</h2>
+                  </div>
+                  <span class="summary-pill">Backend Ready UI</span>
+                </div>
+
+                <div class="payments-view-switcher" role="tablist" aria-label="Payment views">
+                  <button class="payments-view-btn active" type="button" data-payment-view="farmers">Farmers</button>
+                  <button class="payments-view-btn" type="button" data-payment-view="suppliers">Suppliers</button>
+                  <button class="payments-view-btn" type="button" data-payment-view="company">Company</button>
+                </div>
+
+                <label class="field payments-search-field">
+                  <span>Search Record</span>
+                  <input type="search" id="paymentsSearchInput" placeholder="Search by party, slip, or vehicle" />
+                </label>
+              </article>
+
+              <div class="payments-grid-head">
+                <span id="paymentsListLabel">Farmer Orders</span>
+                <strong id="paymentsListCount">0 Results</strong>
+              </div>
+
+              <div class="payments-grid" id="paymentsCardGrid"></div>
+            </div>
+
+            <div class="payments-modal-backdrop hidden" id="paymentsModalBackdrop">
+              <article class="payments-modal-card" role="dialog" aria-modal="true" aria-labelledby="paymentDetailName">
+                <button class="payments-modal-close" id="paymentsModalClose" type="button" aria-label="Close payment details">&times;</button>
+                <div class="payments-modal-scroll">
+                  <div class="payments-modal-head">
+                    <div>
+                      <p class="card-kicker" id="paymentDetailType">Farmer Order</p>
+                      <h2 id="paymentDetailName">-</h2>
+                      <p class="page-copy" id="paymentDetailMeta">-</p>
+                    </div>
+                    <div class="payments-balance-pill">
+                      <span>Pending Balance</span>
+                      <strong id="paymentDetailBalance">Rs 0.00</strong>
+                    </div>
+                  </div>
+
+                  <div class="payments-detail-grid">
+                    <div class="payments-stat-box">
+                      <span>Slip Number</span>
+                      <strong id="paymentDetailSlip">-</strong>
+                    </div>
+                    <div class="payments-stat-box">
+                      <span>Vehicle</span>
+                      <strong id="paymentDetailVehicle">-</strong>
+                    </div>
+                    <div class="payments-stat-box">
+                      <span>Total Amount</span>
+                      <strong id="paymentDetailTotal">Rs 0.00</strong>
+                    </div>
+                    <div class="payments-stat-box">
+                      <span>Paid So Far</span>
+                      <strong id="paymentDetailPaid">Rs 0.00</strong>
+                    </div>
+                  </div>
+
+                  <div class="payments-subsection">
+                    <div class="card-head card-head-inline payments-subsection-head">
+                      <div>
+                        <p class="card-kicker">Order Details</p>
+                        <h2>Transaction Information</h2>
+                      </div>
+                    </div>
+                    <div class="payments-keyvalue-grid" id="paymentDetailInfo"></div>
+                  </div>
+
+                  <div class="payments-subsection payments-history-section">
+                    <div class="card-head card-head-inline payments-subsection-head">
+                      <div>
+                        <p class="card-kicker">History</p>
+                        <h2>Payment Timeline</h2>
+                      </div>
+                    </div>
+                    <div class="payments-history-list" id="paymentHistoryList"></div>
+                  </div>
+
+                  <div class="payments-subsection payments-add-section">
+                    <div class="card-head card-head-inline payments-subsection-head">
+                      <div>
+                        <p class="card-kicker">Add Entry</p>
+                        <h2>Add Payment</h2>
+                      </div>
+                    </div>
+                    <form id="paymentEntryForm" class="payments-entry-form" novalidate>
+                      <div class="form-grid two-col">
+                        <label class="field">
+                          <span>Payment Date</span>
+                          <input type="date" id="paymentEntryDate" required />
+                        </label>
+                        <label class="field">
+                          <span>Amount</span>
+                          <input type="number" id="paymentEntryAmount" min="0" step="0.01" placeholder="0.00" required />
+                        </label>
+                        <label class="field">
+                          <span>Mode</span>
+                          <select id="paymentEntryMode" required>
+                            <option value="">Select mode</option>
+                            <option>Cash</option>
+                            <option>Bank Transfer</option>
+                            <option>UPI</option>
+                            <option>Cheque</option>
+                          </select>
+                        </label>
+                        <label class="field">
+                          <span>Reference</span>
+                          <input type="text" id="paymentEntryReference" placeholder="Txn / Cheque / Note" />
+                        </label>
+                        <label class="field span-2">
+                          <span>Remark</span>
+                          <textarea id="paymentEntryRemark" rows="3" placeholder="Optional payment remark"></textarea>
+                        </label>
+                      </div>
+                      <div class="payments-entry-actions">
+                        <button class="primary-btn" type="submit">Add Payment</button>
+                      </div>
+                    </form>
+                  </div>
+                </div>
+              </article>
+            </div>
+          </section>
+          <section class="view" data-view-panel="settings">
+            <div class="settings-layout">
+              <article class="card settings-intro-card">
+                <p class="card-kicker">Master Data</p>
+                <h2>Settings</h2>
+                <p class="page-copy">
+                  Choose a setting type below and open only that form. When the backend is integrated, these saved values will feed the dropdowns dynamically instead of using static options.
+                </p>
+              </article>
+
+              <article class="card settings-shell">
+                <div class="settings-switcher" role="tablist" aria-label="Settings sections">
+                  <button class="settings-switch-btn active" type="button" data-settings-target="rice">Rice</button>
+                  <button class="settings-switch-btn" type="button" data-settings-target="supplier">Supplier</button>
+                  <button class="settings-switch-btn" type="button" data-settings-target="driver">Driver</button>
+                  <button class="settings-switch-btn" type="button" data-settings-target="company">Company</button>
+                </div>
+
+                <section class="settings-panel active" data-settings-panel="rice">
+                  <div class="card-head card-head-inline">
+                    <div>
+                      <p class="card-kicker">Rice</p>
+                      <h2>Rice Types</h2>
+                    </div>
+                  </div>
+                  <form class="settings-form" id="riceSettingsForm" data-settings-form="rice">
+                    <div class="form-grid single-col">
+                      <label class="field">
+                        <span>Rice Name</span>
+                        <input type="text" id="riceNameInput" placeholder="Enter rice name" required />
+                      </label>
+                    </div>
+                    <div class="settings-form-actions">
+                      <button class="primary-btn" type="submit">Add Rice</button>
+                    </div>
+                  </form>
+                  <div class="settings-list-block">
+                    <div class="settings-list-head">
+                      <span>Saved Rice Types</span>
+                      <strong id="riceCount">0 Items</strong>
+                    </div>
+                    <div class="settings-chip-list" id="riceSettingsList"></div>
+                  </div>
+                </section>
+
+                <section class="settings-panel" data-settings-panel="supplier">
+                  <div class="card-head card-head-inline">
+                    <div>
+                      <p class="card-kicker">Supplier</p>
+                      <h2>Supplier Settings</h2>
+                    </div>
+                  </div>
+                  <form class="settings-form" id="supplierSettingsForm" data-settings-form="supplier">
+                    <div class="form-grid two-col">
+                      <label class="field">
+                        <span>Name</span>
+                        <input type="text" id="supplierNameInput" placeholder="Supplier name" required />
+                      </label>
+                      <label class="field">
+                        <span>Mobile No</span>
+                        <input type="text" id="supplierMobileInput" placeholder="9876543210" required />
+                      </label>
+                      <label class="field">
+                        <span>PAN No</span>
+                        <input type="text" id="supplierPanInput" placeholder="ABCDE1234F" />
+                      </label>
+                      <label class="field">
+                        <span>Aadhar No</span>
+                        <input type="text" id="supplierAadharInput" placeholder="1234 5678 9123" />
+                      </label>
+                      <label class="field span-2">
+                        <span>Address</span>
+                        <textarea id="supplierAddressInput" rows="3" placeholder="Enter address"></textarea>
+                      </label>
+                    </div>
+                    <div class="settings-form-actions">
+                      <button class="primary-btn" type="submit">Add Supplier</button>
+                    </div>
+                  </form>
+                  <div class="settings-list-block">
+                    <div class="settings-list-head">
+                      <span>Saved Suppliers</span>
+                      <strong id="supplierCount">0 Items</strong>
+                    </div>
+                    <div class="settings-record-list" id="supplierSettingsList"></div>
+                  </div>
+                </section>
+
+                <section class="settings-panel" data-settings-panel="driver">
+                  <div class="card-head card-head-inline">
+                    <div>
+                      <p class="card-kicker">Driver</p>
+                      <h2>Driver Settings</h2>
+                    </div>
+                  </div>
+                  <form class="settings-form" id="driverSettingsForm" data-settings-form="driver">
+                    <div class="form-grid two-col">
+                      <label class="field">
+                        <span>Driver Name</span>
+                        <input type="text" id="driverNameInput" placeholder="Driver name" required />
+                      </label>
+                      <label class="field">
+                        <span>Driver Mobile No</span>
+                        <input type="text" id="driverMobileInput" placeholder="9876543210" required />
+                      </label>
+                    </div>
+                    <div class="settings-form-actions">
+                      <button class="primary-btn" type="submit">Add Driver</button>
+                    </div>
+                  </form>
+                  <div class="settings-list-block">
+                    <div class="settings-list-head">
+                      <span>Saved Drivers</span>
+                      <strong id="driverCount">0 Items</strong>
+                    </div>
+                    <div class="settings-record-list" id="driverSettingsList"></div>
+                  </div>
+                </section>
+
+                <section class="settings-panel" data-settings-panel="company">
+                  <div class="card-head card-head-inline">
+                    <div>
+                      <p class="card-kicker">Company</p>
+                      <h2>Company Settings</h2>
+                    </div>
+                  </div>
+                  <form class="settings-form" id="companySettingsForm" data-settings-form="company">
+                    <div class="form-grid two-col">
+                      <label class="field span-2">
+                        <span>Company Name</span>
+                        <input type="text" id="companyNameInput" placeholder="Company name" required />
+                      </label>
+                      <label class="field span-2">
+                        <span>Address</span>
+                        <textarea id="companyAddressInput" rows="3" placeholder="Enter address"></textarea>
+                      </label>
+                      <label class="field">
+                        <span>Mobile No</span>
+                        <input type="text" id="companyMobileInput" placeholder="9876543210" required />
+                      </label>
+                    </div>
+                    <div class="settings-form-actions">
+                      <button class="primary-btn" type="submit">Add Company</button>
+                    </div>
+                  </form>
+                  <div class="settings-list-block">
+                    <div class="settings-list-head">
+                      <span>Saved Companies</span>
+                      <strong id="companyCount">0 Items</strong>
+                    </div>
+                    <div class="settings-record-list" id="companySettingsList"></div>
+                  </div>
+                </section>
+              </article>
+            </div>
+          </section>
+        </main>
+      </div>
+    </div>
+
+    <template id="godownRowTemplate">
+      <tr>
+        <td>
+          <select class="entry-type">
+            <option value="">Select type</option>
+            <option>Basmati</option>
+            <option>Swarna</option>
+            <option>IR64</option>
+            <option>PR126</option>
+          </select>
+        </td>
+        <td><input class="entry-bags" type="number" min="0" step="1" placeholder="0" /></td>
+        <td><input class="entry-rate" type="number" min="0" step="0.01" placeholder="0.00" /></td>
+        <td><input class="entry-weight" type="text" readonly value="0.00 Kg" /></td>
+        <td><input class="entry-amount" type="text" readonly value="Rs 0.00" /></td>
+        <td>
+          <button class="icon-btn delete-row-btn" type="button" aria-label="Delete row">&#10005;</button>
+        </td>
+      </tr>
+    </template>
+
+    <template id="homeRowTemplate">
+      <tr>
+        <td>
+          <select class="entry-type">
+            <option value="">Select type</option>
+            <option>Basmati</option>
+            <option>Swarna</option>
+            <option>IR64</option>
+            <option>PR126</option>
+          </select>
+        </td>
+        <td><input class="entry-bags" type="number" min="0" step="1" placeholder="0" /></td>
+        <td><input class="entry-weight-per-bag" type="number" min="0" step="0.01" placeholder="0.00" /></td>
+        <td><input class="entry-weight" type="text" readonly value="0.00 Kg" /></td>
+        <td><input class="entry-rate" type="number" min="0" step="0.01" placeholder="0.00" /></td>
+        <td><input class="entry-amount" type="text" readonly value="Rs 0.00" /></td>
+        <td>
+          <button class="icon-btn delete-row-btn" type="button" aria-label="Delete row">&#10005;</button>
+        </td>
+      </tr>
+    </template>
+
+    <script src="script.js"></script>
+  </body>
+</html>
