@@ -196,7 +196,7 @@
                       </label>
 
                       <label class="field">
-                        <span>Slip Number <em>*</em></span>
+                        <span>Weight Number <em>*</em></span>
                         <input
                           type="text"
                           id="godownSlipNumber"
@@ -244,7 +244,12 @@
 
                       <label class="field">
                         <span>Dust Deduction (Kg)</span>
-                        <input type="number" id="godownDustDeduction" min="0" step="0.01" value="0" />
+                        <input type="number" id="godownDustDeduction" min="0" step="0.01" placeholder="0.00" />
+                      </label>
+
+                      <label class="field">
+                        <span>Moisture Deduction (Kg)</span>
+                        <input type="number" id="godownMoistureDeduction" min="0" step="0.01" placeholder="0.00" />
                       </label>
 
                       <label class="field">
@@ -260,6 +265,15 @@
                       <label class="field span-2">
                         <span>Average Weight (Kg/Bag)</span>
                         <input type="text" id="godownAverageWeight" readonly />
+                      </label>
+
+                      <label class="field span-2">
+                        <span>Moisture Note</span>
+                        <textarea
+                          id="godownMoistureNote"
+                          rows="4"
+                          placeholder="16% moisture&#10;Reduced 10kg"
+                        ></textarea>
                       </label>
                     </div>
                   </article>
@@ -294,31 +308,6 @@
                     <div class="card-head">
                       <div>
                         <p class="card-kicker">Section 4</p>
-                        <h2>Moisture Deduction</h2>
-                      </div>
-                    </div>
-
-                    <div class="form-grid two-col">
-                      <label class="field">
-                        <span>Moisture Deduction (Kg)</span>
-                        <input type="number" id="godownMoistureDeduction" min="0" step="0.01" value="0" />
-                      </label>
-
-                      <label class="field">
-                        <span>Moisture Note</span>
-                        <textarea
-                          id="godownMoistureNote"
-                          rows="4"
-                          placeholder="16% moisture&#10;Reduced 10kg"
-                        ></textarea>
-                      </label>
-                    </div>
-                  </article>
-
-                  <article class="card">
-                    <div class="card-head">
-                      <div>
-                        <p class="card-kicker">Section 5</p>
                         <h2>Loading Charges</h2>
                       </div>
                     </div>
@@ -326,7 +315,7 @@
                     <div class="form-grid single-col">
                       <label class="field">
                         <span>Loading Unloading Discount</span>
-                        <input type="number" id="godownLoadingDiscount" min="0" step="0.01" value="0" />
+                        <input type="number" id="godownLoadingDiscount" min="0" step="0.01" placeholder="0.00" />
                       </label>
                     </div>
                   </article>
@@ -334,7 +323,7 @@
                   <article class="card">
                     <div class="card-head">
                       <div>
-                        <p class="card-kicker">Section 6</p>
+                        <p class="card-kicker">Section 4</p>
                         <h2>Advance Payment</h2>
                       </div>
                     </div>
@@ -342,7 +331,7 @@
                     <div class="form-grid single-col">
                       <label class="field">
                         <span>Advance Payment</span>
-                        <input type="number" id="godownAdvancePayment" min="0" step="0.01" value="0" />
+                        <input type="number" id="godownAdvancePayment" min="0" step="0.01" placeholder="0.00" />
                       </label>
                     </div>
                   </article>
@@ -403,7 +392,8 @@
                     </div>
                     <div class="print-grid">
                       <div><span>Date</span><strong id="godownPrintDate">-</strong></div>
-                      <div><span>Slip Number</span><strong id="godownPrintSlip">-</strong></div>
+                      <div><span>Slip ID</span><strong id="godownPrintId">-</strong></div>
+                      <div><span>Weight Number</span><strong id="godownPrintSlip">-</strong></div>
                       <div><span>Vehicle</span><strong id="godownPrintVehicle">-</strong></div>
                       <div><span>Supplier</span><strong id="godownPrintParty">-</strong></div>
                       <div><span>Gross Weight</span><strong id="godownPrintGrossWeight">0.00 Kg</strong></div>
@@ -445,8 +435,8 @@
             </div>
 
             <div class="sticky-actions" data-sticky-actions="godown-entry">
-              <button class="primary-btn" type="button" data-action="save" data-module="godown">Save</button>
-              <button class="primary-btn alt" type="button" data-action="print" data-module="godown">Save &amp; Print</button>
+              <button class="primary-btn" type="button" data-action="save" data-module="godown" disabled>Save</button>
+              <button class="primary-btn alt" type="button" data-action="print" data-module="godown" disabled>Save &amp; Print</button>
               <button class="ghost-btn" type="button" data-action="reset" data-module="godown">Reset</button>
             </div>
           </section>
@@ -470,7 +460,7 @@
                       </label>
 
                       <label class="field">
-                        <span>Slip Number <em>*</em></span>
+                        <span>Weight Number <em>*</em></span>
                         <input type="text" id="homeSlipNumber" placeholder="Enter slip number" required />
                       </label>
 
@@ -552,7 +542,7 @@
                     <div class="form-grid single-col">
                       <label class="field">
                         <span>Advance Payment</span>
-                        <input type="number" id="homeAdvancePayment" min="0" step="0.01" value="0" />
+                        <input type="number" id="homeAdvancePayment" min="0" step="0.01" placeholder="0.00" />
                       </label>
                     </div>
                   </article>
@@ -608,7 +598,8 @@
                     </div>
                     <div class="print-grid">
                       <div><span>Date</span><strong id="homePrintDate">-</strong></div>
-                      <div><span>Slip Number</span><strong id="homePrintSlip">-</strong></div>
+                      <div><span>Slip ID</span><strong id="homePrintId">-</strong></div>
+                      <div><span>Weight Number</span><strong id="homePrintSlip">-</strong></div>
                       <div><span>Farmer Name</span><strong id="homePrintParty">-</strong></div>
                       <div><span>Driver Name</span><strong id="homePrintDriver">-</strong></div>
                       <div><span>Vehicle Number</span><strong id="homePrintVehicle">-</strong></div>
@@ -644,8 +635,8 @@
             </div>
 
             <div class="sticky-actions" data-sticky-actions="home-entry">
-              <button class="primary-btn" type="button" data-action="save" data-module="home">Save</button>
-              <button class="primary-btn alt" type="button" data-action="print" data-module="home">Save &amp; Print</button>
+              <button class="primary-btn" type="button" data-action="save" data-module="home" disabled>Save</button>
+              <button class="primary-btn alt" type="button" data-action="print" data-module="home" disabled>Save &amp; Print</button>
               <button class="ghost-btn" type="button" data-action="reset" data-module="home">Reset</button>
             </div>
           </section>
@@ -669,7 +660,7 @@
                       </label>
 
                       <label class="field">
-                        <span>Slip Number <em>*</em></span>
+                        <span>Weight Number <em>*</em></span>
                         <input
                           type="text"
                           id="sellingSlipNumber"
@@ -717,7 +708,12 @@
 
                       <label class="field">
                         <span>Dust Deduction (Kg)</span>
-                        <input type="number" id="sellingDustDeduction" min="0" step="0.01" value="0" />
+                        <input type="number" id="sellingDustDeduction" min="0" step="0.01" placeholder="0.00" />
+                      </label>
+
+                      <label class="field">
+                        <span>Moisture Deduction (Kg)</span>
+                        <input type="number" id="sellingMoistureDeduction" min="0" step="0.01" placeholder="0.00" />
                       </label>
 
                       <label class="field">
@@ -733,6 +729,15 @@
                       <label class="field span-2">
                         <span>Average Weight (Kg/Bag)</span>
                         <input type="text" id="sellingAverageWeight" readonly />
+                      </label>
+
+                      <label class="field span-2">
+                        <span>Moisture Note</span>
+                        <textarea
+                          id="sellingMoistureNote"
+                          rows="4"
+                          placeholder="16% moisture&#10;Reduced 10kg"
+                        ></textarea>
                       </label>
                     </div>
                   </article>
@@ -767,23 +772,14 @@
                     <div class="card-head">
                       <div>
                         <p class="card-kicker">Section 4</p>
-                        <h2>Moisture Deduction</h2>
+                        <h2>Loading Charges</h2>
                       </div>
                     </div>
 
-                    <div class="form-grid two-col">
+                    <div class="form-grid single-col">
                       <label class="field">
-                        <span>Moisture Deduction (Kg)</span>
-                        <input type="number" id="sellingMoistureDeduction" min="0" step="0.01" value="0" />
-                      </label>
-
-                      <label class="field">
-                        <span>Moisture Note</span>
-                        <textarea
-                          id="sellingMoistureNote"
-                          rows="4"
-                          placeholder="16% moisture&#10;Reduced 10kg"
-                        ></textarea>
+                        <span>Loading Unloading Discount</span>
+                        <input type="number" id="sellingLoadingDiscount" min="0" step="0.01" placeholder="0.00" />
                       </label>
                     </div>
                   </article>
@@ -792,22 +788,6 @@
                     <div class="card-head">
                       <div>
                         <p class="card-kicker">Section 5</p>
-                        <h2>Loading Charges</h2>
-                      </div>
-                    </div>
-
-                    <div class="form-grid single-col">
-                      <label class="field">
-                        <span>Loading Unloading Discount</span>
-                        <input type="number" id="sellingLoadingDiscount" min="0" step="0.01" value="0" />
-                      </label>
-                    </div>
-                  </article>
-
-                  <article class="card">
-                    <div class="card-head">
-                      <div>
-                        <p class="card-kicker">Section 6</p>
                         <h2>Advance Payment</h2>
                       </div>
                     </div>
@@ -815,7 +795,7 @@
                     <div class="form-grid single-col">
                       <label class="field">
                         <span>Advance Payment</span>
-                        <input type="number" id="sellingAdvancePayment" min="0" step="0.01" value="0" />
+                        <input type="number" id="sellingAdvancePayment" min="0" step="0.01" placeholder="0.00" />
                       </label>
                     </div>
                   </article>
@@ -876,7 +856,8 @@
                     </div>
                     <div class="print-grid">
                       <div><span>Date</span><strong id="sellingPrintDate">-</strong></div>
-                      <div><span>Slip Number</span><strong id="sellingPrintSlip">-</strong></div>
+                      <div><span>Slip ID</span><strong id="sellingPrintId">-</strong></div>
+                      <div><span>Weight Number</span><strong id="sellingPrintSlip">-</strong></div>
                       <div><span>Vehicle</span><strong id="sellingPrintVehicle">-</strong></div>
                       <div><span>Company</span><strong id="sellingPrintParty">-</strong></div>
                       <div><span>Gross Weight</span><strong id="sellingPrintGrossWeight">0.00 Kg</strong></div>
@@ -918,8 +899,8 @@
             </div>
 
             <div class="sticky-actions" data-sticky-actions="selling">
-              <button class="primary-btn" type="button" data-action="save" data-module="selling">Save</button>
-              <button class="primary-btn alt" type="button" data-action="print" data-module="selling">Save &amp; Print</button>
+              <button class="primary-btn" type="button" data-action="save" data-module="selling" disabled>Save</button>
+              <button class="primary-btn alt" type="button" data-action="print" data-module="selling" disabled>Save &amp; Print</button>
               <button class="ghost-btn" type="button" data-action="reset" data-module="selling">Reset</button>
             </div>
           </section>
@@ -945,6 +926,30 @@
                   <span>Search Record</span>
                   <input type="search" id="reportsSearchInput" placeholder="Search by party, slip, vehicle, sale, or purchase" />
                 </label>
+
+                <div class="reports-filter-grid">
+                  <label class="field">
+                    <span>Select Party</span>
+                    <select id="reportsPartyFilter">
+                      <option value="">All Records</option>
+                    </select>
+                  </label>
+
+                  <label class="field">
+                    <span>From Date</span>
+                    <input type="date" id="reportsDateFrom" />
+                  </label>
+
+                  <label class="field">
+                    <span>To Date</span>
+                    <input type="date" id="reportsDateTo" />
+                  </label>
+
+                  <div class="reports-toolbar-actions">
+                    <button class="ghost-btn" id="reportsClearFiltersButton" type="button">Clear Filters</button>
+                    <button class="primary-btn" id="reportsExportStatementButton" type="button">Export Party Statement</button>
+                  </div>
+                </div>
               </article>
 
               <div class="reports-grid-head">
@@ -966,27 +971,8 @@
                       <p class="page-copy" id="reportDetailMeta">-</p>
                     </div>
                     <div class="reports-balance-pill">
-                      <span>Report Total</span>
+                      <span>Total Amount</span>
                       <strong id="reportDetailTotal">Rs 0.00</strong>
-                    </div>
-                  </div>
-
-                  <div class="reports-detail-grid">
-                    <div class="reports-stat-box">
-                      <span>Record Type</span>
-                      <strong id="reportDetailKind">-</strong>
-                    </div>
-                    <div class="reports-stat-box">
-                      <span>Slip Number</span>
-                      <strong id="reportDetailSlip">-</strong>
-                    </div>
-                    <div class="reports-stat-box">
-                      <span>Vehicle</span>
-                      <strong id="reportDetailVehicle">-</strong>
-                    </div>
-                    <div class="reports-stat-box">
-                      <span>Total Weight</span>
-                      <strong id="reportDetailWeight">0.00 Kg</strong>
                     </div>
                   </div>
 
@@ -997,7 +983,11 @@
                         <h2>Transaction Details</h2>
                       </div>
                     </div>
-                    <div class="reports-keyvalue-grid" id="reportDetailInfo"></div>
+                    <div class="tally-table-wrap">
+                      <table class="tally-table reports-keyvalue-table">
+                        <tbody id="reportDetailInfo"></tbody>
+                      </table>
+                    </div>
                   </div>
 
                   <div class="reports-subsection">
@@ -1007,7 +997,26 @@
                         <h2>Material Breakdown</h2>
                       </div>
                     </div>
-                    <div class="reports-items-list" id="reportItemsList"></div>
+                    <div class="tally-table-wrap">
+                      <table class="tally-table reports-items-table">
+                        <thead>
+                          <tr>
+                            <th>Material</th>
+                            <th>Bags</th>
+                            <th>Weight</th>
+                            <th>Rate / Kg</th>
+                            <th class="tally-amount-col">Amount</th>
+                          </tr>
+                        </thead>
+                        <tbody id="reportItemsList"></tbody>
+                        <tfoot>
+                          <tr class="tally-total-row">
+                            <td colspan="4">Total Amount</td>
+                            <td class="tally-amount-col" id="reportItemsTotal">Rs 0.00</td>
+                          </tr>
+                        </tfoot>
+                      </table>
+                    </div>
                   </div>
 
                   <div class="reports-subsection">
@@ -1018,7 +1027,7 @@
                       </div>
                     </div>
                     <div class="reports-actions">
-                      <button class="primary-btn" id="reportPrintButton" type="button">Print PDF Report</button>
+                      <button class="primary-btn" id="reportPrintButton" type="button">Download Slip PDF</button>
                     </div>
                   </div>
                 </div>
@@ -1026,42 +1035,107 @@
             </div>
 
             <div class="print-only reports-print-sheet" id="reportsPrintArea">
-              <div class="print-title">
-                <h3 id="reportPrintTitle">Paddy Report</h3>
-                <p id="reportPrintSubtitle">Report Summary</p>
-              </div>
-              <div class="print-grid">
-                <div><span>Party</span><strong id="reportPrintName">-</strong></div>
-                <div><span>Record Type</span><strong id="reportPrintKind">-</strong></div>
-                <div><span>Date</span><strong id="reportPrintDate">-</strong></div>
-                <div><span>Slip Number</span><strong id="reportPrintSlip">-</strong></div>
-                <div><span>Vehicle</span><strong id="reportPrintVehicle">-</strong></div>
-                <div><span>Total Weight</span><strong id="reportPrintWeight">0.00 Kg</strong></div>
-              </div>
-              <div class="print-note-block">
-                <span>Summary</span>
-                <p id="reportPrintSummary">-</p>
-              </div>
-              <table class="print-table">
-                <thead>
-                  <tr>
-                    <th>Material</th>
-                    <th>Bags</th>
-                    <th>Weight</th>
-                    <th>Rate / Kg</th>
-                    <th>Amount</th>
-                  </tr>
-                </thead>
-                <tbody id="reportPrintItemsBody"></tbody>
-              </table>
-              <div class="print-totals">
-                <div><span>Total Amount</span><strong id="reportPrintTotal">Rs 0.00</strong></div>
-              </div>
-              <div class="signature-row">
-                <div class="signature-box"><span>Authorized Signature</span></div>
-                <div class="signature-box"><span>Accounts Signature</span></div>
-              </div>
-            </div>
+              <section class="reports-print-block" id="reportSinglePrintBlock">
+                <div class="print-title reports-print-title">
+                  <h3 id="reportPrintTitle">Paddy Report</h3>
+                  <p id="reportPrintSubtitle">Detailed Slip Report</p>
+                </div>
+                <div class="print-grid reports-print-meta-grid">
+                  <div><span>Party</span><strong id="reportPrintName">-</strong></div>
+                  <div><span>Slip ID</span><strong id="reportPrintId">-</strong></div>
+                  <div><span>Record Type</span><strong id="reportPrintKind">-</strong></div>
+                  <div><span>Date</span><strong id="reportPrintDate">-</strong></div>
+                </div>
+                <table class="print-table reports-summary-table">
+                  <tbody id="reportPrintSummaryTableBody"></tbody>
+                </table>
+                <div class="print-note-block reports-note-block">
+                  <span>Moisture Deduction Notes</span>
+                  <p id="reportPrintSummary">-</p>
+                </div>
+                <table class="print-table reports-material-table">
+                  <thead>
+                    <tr>
+                      <th>Material</th>
+                      <th>Bags</th>
+                      <th>Weight</th>
+                      <th>Rate / Kg</th>
+                      <th>Amount</th>
+                    </tr>
+                  </thead>
+                  <tbody id="reportPrintItemsBody"></tbody>
+                </table>
+                <div class="print-totals reports-print-totals">
+                  <div><span>Final Amount</span><strong id="reportPrintTotal">Rs 0.00</strong></div>
+                </div>
+                <div class="signature-row">
+                  <div class="signature-box"><span>Authorized Signature</span></div>
+                  <div class="signature-box"><span>Accounts Signature</span></div>
+                </div>
+              </section>
+
+              <section class="reports-print-block hidden" id="reportStatementPrintBlock">
+                <div class="statement-header">
+                  <h1 id="statementPrintTitle">Party Account Statement</h1>
+                  <p id="statementPrintSubtitle">Ledger Report</p>
+                </div>
+                <div class="statement-meta-row">
+                  <div><span>Party</span><strong id="statementPrintName">-</strong></div>
+                  <div><span>Record Type</span><strong id="statementPrintKind">-</strong></div>
+                  <div><span>Statement Period</span><strong id="statementPrintPeriod">-</strong></div>
+                </div>
+                <div class="statement-totals-row">
+                  <div><span>All Time Buy Amount</span><strong id="statementTotalCredit">Rs 0.00</strong></div>
+                  <div><span>Paid Amount</span><strong id="statementTotalPaid" class="amount-positive">Rs 0.00</strong></div>
+                  <div><span>Pending Amount</span><strong id="statementTotalPending" class="amount-negative">Rs 0.00</strong></div>
+                </div>
+                <table class="print-table reports-statement-table">
+                  <thead>
+                    <tr>
+                      <th>Sl No</th>
+                      <th>Date</th>
+                      <th>Vehicle / Ref No</th>
+                      <th>Particulars</th>
+                      <th>Amount (₹)</th>
+                    </tr>
+                  </thead>
+                  <tbody id="statementPrintBody"></tbody>
+                  <tfoot>
+                    <tr class="statement-total-row">
+                      <td colspan="4">Total</td>
+                      <td id="statementPrintTotalAmount">Rs 0.00</td>
+                    </tr>
+                  </tfoot>
+                </table>
+
+                <div class="statement-section-divider"><span>Payments Ledger (All Payments)</span></div>
+
+                <table class="print-table reports-statement-table">
+                  <thead>
+                    <tr>
+                      <th>Sl No</th>
+                      <th>Date</th>
+                      <th>Mode</th>
+                      <th>Reference / Details</th>
+                      <th>Amount (₹)</th>
+                    </tr>
+                  </thead>
+                  <tbody id="statementPaymentsPrintBody"></tbody>
+                  <tfoot>
+                    <tr class="statement-total-row">
+                      <td colspan="4">Total Payments</td>
+                      <td id="statementPrintTotalPayments">Rs 0.00</td>
+                    </tr>
+                  </tfoot>
+                </table>
+
+                <div class="signature-row">
+                  <div class="signature-box"><span>Authorized Signature</span></div>
+                  <div class="signature-box"><span>Accounts Signature</span></div>
+                </div>
+              </section>
+
+                          </div>
           </section>
 
           <section class="view" data-view-panel="payments">
@@ -1072,7 +1146,7 @@
                     <p class="card-kicker">Settlement Desk</p>
                     <h2>Payments</h2>
                   </div>
-                  <span class="summary-pill">Backend Ready UI</span>
+                  <span class="summary-pill">Party Ledger Mode</span>
                 </div>
 
                 <div class="payments-view-switcher" role="tablist" aria-label="Payment views">
@@ -1082,13 +1156,13 @@
                 </div>
 
                 <label class="field payments-search-field">
-                  <span>Search Record</span>
+                  <span>Search Party</span>
                   <input type="search" id="paymentsSearchInput" placeholder="Search by party, slip, or vehicle" />
                 </label>
               </article>
 
               <div class="payments-grid-head">
-                <span id="paymentsListLabel">Farmer Orders</span>
+                <span id="paymentsListLabel">Farmer Ledgers</span>
                 <strong id="paymentsListCount">0 Results</strong>
               </div>
 
@@ -1101,7 +1175,7 @@
                 <div class="payments-modal-scroll">
                   <div class="payments-modal-head">
                     <div>
-                      <p class="card-kicker" id="paymentDetailType">Farmer Order</p>
+                      <p class="card-kicker" id="paymentDetailType">Farmer Ledger</p>
                       <h2 id="paymentDetailName">-</h2>
                       <p class="page-copy" id="paymentDetailMeta">-</p>
                     </div>
@@ -1113,12 +1187,12 @@
 
                   <div class="payments-detail-grid">
                     <div class="payments-stat-box">
-                      <span>Slip Number</span>
-                      <strong id="paymentDetailSlip">-</strong>
+                      <span>Total Orders</span>
+                      <strong id="paymentDetailOrderCount">0</strong>
                     </div>
                     <div class="payments-stat-box">
-                      <span>Vehicle</span>
-                      <strong id="paymentDetailVehicle">-</strong>
+                      <span>Open Orders</span>
+                      <strong id="paymentDetailOpenCount">0</strong>
                     </div>
                     <div class="payments-stat-box">
                       <span>Total Amount</span>
@@ -1133,8 +1207,8 @@
                   <div class="payments-subsection">
                     <div class="card-head card-head-inline payments-subsection-head">
                       <div>
-                        <p class="card-kicker">Order Details</p>
-                        <h2>Transaction Information</h2>
+                        <p class="card-kicker">Ledger Details</p>
+                        <h2>Settlement Information</h2>
                       </div>
                     </div>
                     <div class="payments-keyvalue-grid" id="paymentDetailInfo"></div>
@@ -1150,11 +1224,21 @@
                     <div class="payments-history-list" id="paymentHistoryList"></div>
                   </div>
 
+                  <div class="payments-subsection payments-history-section">
+                    <div class="card-head card-head-inline payments-subsection-head">
+                      <div>
+                        <p class="card-kicker">Orders</p>
+                        <h2>Auto Allocation Breakdown</h2>
+                      </div>
+                    </div>
+                    <div class="payments-history-list" id="paymentAllocationList"></div>
+                  </div>
+
                   <div class="payments-subsection payments-add-section">
                     <div class="card-head card-head-inline payments-subsection-head">
                       <div>
                         <p class="card-kicker">Add Entry</p>
-                        <h2>Add Payment</h2>
+                        <h2>Add Lump-Sum Payment</h2>
                       </div>
                     </div>
                     <form id="paymentEntryForm" class="payments-entry-form" novalidate>
@@ -1168,6 +1252,10 @@
                           <input type="number" id="paymentEntryAmount" min="0" step="0.01" placeholder="0.00" required />
                         </label>
                         <label class="field">
+                          <span>Bank Account</span>
+                          <input type="text" id="paymentEntryBankAccount" placeholder="HDFC Main Account" required />
+                        </label>
+                        <label class="field">
                           <span>Mode</span>
                           <select id="paymentEntryMode" required>
                             <option value="">Select mode</option>
@@ -1175,11 +1263,12 @@
                             <option>Bank Transfer</option>
                             <option>UPI</option>
                             <option>Cheque</option>
+                            <option>Other</option>
                           </select>
                         </label>
-                        <label class="field">
-                          <span>Reference</span>
-                          <input type="text" id="paymentEntryReference" placeholder="Txn / Cheque / Note" />
+                        <label class="field span-2">
+                          <span>Reference Number</span>
+                          <input type="text" id="paymentEntryReference" placeholder="Unique txn / cheque number" required />
                         </label>
                         <label class="field span-2">
                           <span>Remark</span>
@@ -1397,6 +1486,8 @@
         </td>
       </tr>
     </template>
+
+    <div class="app-toast" id="appToast" role="status" aria-live="polite"></div>
 
     <script src="script.js"></script>
   </body>
