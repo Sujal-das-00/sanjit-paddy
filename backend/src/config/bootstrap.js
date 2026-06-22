@@ -1,0 +1,168 @@
+const { pool } = require('./database');
+
+async function hasTable(connection, tableName) {
+  const [rows] = await connection.execute(
+    `
+      SELECT 1
+      FROM INFORMATION_SCHEMA.TABLES
+      WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ?
+      LIMIT 1
+    `,
+    [tableName]
+  );
+
+  return rows.length > 0;
+}
+
+async function getColumns(connection, tableName) {
+  const [rows] = await connection.execute(
+    `
+      SELECT COLUMN_NAME AS columnName, IS_NULLABLE AS isNullable
+      FROM INFORMATION_SCHEMA.COLUMNS
+      WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ?
+    `,
+    [tableName]
+  );
+
+  return rows.reduce((accumulator, row) => {
+    accumulator[row.columnName] = row;
+    return accumulator;
+  }, {});
+}
+
+async function hasIndex(connection, tableName, indexName) {
+  const [rows] = await connection.execute(
+    `
+      SELECT 1
+      FROM INFORMATION_SCHEMA.STATISTICS
+      WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ? AND INDEX_NAME = ?
+      LIMIT 1
+    `,
+    [tableName, indexName]
+  );
+
+  return rows.length > 0;
+}
+
+async function ensurePaymentsTableShape(connection) {
+  const columns = await getColumns(connection, 'payments');
+
+  if (columns.slip_id && columns.slip_id.isNullable === 'NO') {
+    await connection.execute('ALTER TABLE payments MODIFY slip_id BIGINT NULL');
+  }
+
+  if (!columns.party_view) {
+    await connection.execute(
+      "ALTER TABLE payments ADD COLUMN party_view ENUM('farmers','suppliers','company') NULL AFTER slip_id"
+    );
+  }
+
+  if (!columns.party_name) {
+    await connection.execute('ALTER TABLE payments ADD COLUMN party_name VARCHAR(180) NULL AFTER party_view');
+  }
+
+  if (!columns.bank_account) {
+    await connection.execute('ALTER TABLE payments ADD COLUMN bank_account VARCHAR(160) NULL AFTER amount');
+  }
+
+  if (!(await hasIndex(connection, 'payments', 'idx_payments_party'))) {
+    await connection.execute('ALTER TABLE payments ADD KEY idx_payments_party (party_view, party_name)');
+  }
+
+  if (!(await hasIndex(connection, 'payments', 'idx_payments_bank_account'))) {
+    await connection.execute('ALTER TABLE payments ADD KEY idx_payments_bank_account (bank_account)');
+  }
+
+  if (!(await hasIndex(connection, 'payments', 'idx_payments_reference_code'))) {
+    await connection.execute('ALTER TABLE payments ADD KEY idx_payments_reference_code (reference_code)');
+  }
+}
+
+async function ensurePaymentAllocationsTable(connection) {
+  await connection.execute(`
+    CREATE TABLE IF NOT EXISTS payment_allocations (
+      id BIGINT PRIMARY KEY AUTO_INCREMENT,
+      payment_id BIGINT NOT NULL,
+      slip_id BIGINT NOT NULL,
+      allocated_amount DECIMAL(12,2) NOT NULL,
+      created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+      KEY idx_payment_allocations_payment (payment_id),
+      KEY idx_payment_allocations_slip (slip_id),
+      CONSTRAINT fk_payment_allocations_payment FOREIGN KEY (payment_id) REFERENCES payments(id) ON DELETE CASCADE,
+      CONSTRAINT fk_payment_allocations_slip FOREIGN KEY (slip_id) REFERENCES slips(id) ON DELETE CASCADE
+    )
+  `);
+}
+
+async function backfillPartyFields(connection) {
+  await connection.execute(`
+    UPDATE payments p
+    JOIN slips s ON s.id = p.slip_id
+    SET
+      p.party_view = CASE
+        WHEN s.module_type = 'home' THEN 'farmers'
+        WHEN s.module_type = 'godown' THEN 'suppliers'
+        ELSE 'company'
+      END,
+      p.party_name = COALESCE(
+        s.farmer_name_snapshot,
+        s.supplier_name_snapshot,
+        s.company_name_snapshot
+      )
+    WHERE p.slip_id IS NOT NULL
+      AND (p.party_view IS NULL OR p.party_name IS NULL OR p.party_name = '')
+  `);
+}
+
+async function backfillPaymentAllocations(connection) {
+  await connection.execute(`
+    INSERT INTO payment_allocations (payment_id, slip_id, allocated_amount)
+    SELECT p.id, p.slip_id, p.amount
+    FROM payments p
+    LEFT JOIN payment_allocations pa ON pa.payment_id = p.id
+    WHERE p.slip_id IS NOT NULL
+      AND pa.id IS NULL
+  `);
+}
+
+async function recreateSlipPaymentSummaryView(connection) {
+  await connection.execute(`
+    CREATE OR REPLACE VIEW vw_slip_payment_summary AS
+    SELECT
+      s.id AS slip_id,
+      COALESCE(s.advance_payment, 0) + COALESCE(SUM(pa.allocated_amount), 0) AS paid_amount,
+      GREATEST(COALESCE(s.final_payable, 0) - COALESCE(SUM(pa.allocated_amount), 0), 0) AS balance_amount
+    FROM slips s
+    LEFT JOIN payment_allocations pa ON pa.slip_id = s.id
+    GROUP BY s.id, s.final_payable, s.advance_payment
+  `);
+}
+
+async function ensurePaymentSchema() {
+  const connection = await pool.getConnection();
+
+  try {
+    const hasPayments = await hasTable(connection, 'payments');
+    const hasSlips = await hasTable(connection, 'slips');
+
+    if (!hasPayments || !hasSlips) {
+      return;
+    }
+
+    await connection.beginTransaction();
+    await ensurePaymentsTableShape(connection);
+    await ensurePaymentAllocationsTable(connection);
+    await backfillPartyFields(connection);
+    await backfillPaymentAllocations(connection);
+    await recreateSlipPaymentSummaryView(connection);
+    await connection.commit();
+  } catch (error) {
+    await connection.rollback();
+    throw error;
+  } finally {
+    connection.release();
+  }
+}
+
+module.exports = { ensurePaymentSchema };
