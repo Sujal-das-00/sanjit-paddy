@@ -1,4 +1,4 @@
-CREATE DATABASE IF NOT EXISTS paddy_management;
+CREATE DATABASE IF NOT EXISTS toolszil_paddy;
 USE toolszil_paddy;
 
 CREATE TABLE IF NOT EXISTS rice_types (
