@@ -1,5 +1,5 @@
 CREATE DATABASE IF NOT EXISTS paddy_management;
-USE paddy_management;
+USE toolszil_paddy;
 
 CREATE TABLE IF NOT EXISTS rice_types (
   id BIGINT PRIMARY KEY AUTO_INCREMENT,
