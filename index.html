@@ -1489,12 +1489,7 @@
 
     <div class="app-toast" id="appToast" role="status" aria-live="polite"></div>
 
-    <script>
-      window.PADDY_API_BASE =
-        window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1"
-          ? "http://localhost:4000/api"
-          : "https://api.toolszila.com";
-    </script>
+    <script src="env.js"></script>
     <script src="script.js"></script>
   </body>
 </html>

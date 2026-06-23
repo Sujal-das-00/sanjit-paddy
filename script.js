@@ -64,7 +64,7 @@ const pageCopy = document.getElementById("pageCopy");
 const dashboardStatValues = [...document.querySelectorAll(".stat-card .stat-value")];
 const dashboardStatMeta = [...document.querySelectorAll(".stat-card .stat-meta")];
 const dashboardRecentBody = document.querySelector(".dashboard-table tbody");
-const API_BASE = window.PADDY_API_BASE || "http://localhost:4000/api";
+const API_BASE = window.APP_CONFIG?.API_BASE_URL || "http://localhost:4000/api";
 let currentReportDetail = null;
 let currentPaymentDetail = null;
 
