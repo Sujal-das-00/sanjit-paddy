@@ -62,6 +62,7 @@ const backendStatusPill = document.getElementById("backendStatusPill");
 const backendStatusSpinner = document.getElementById("backendStatusSpinner");
 const loginOverlay = document.getElementById("loginOverlay");
 const loginForm = document.getElementById("loginForm");
+const loginUsernameInput = document.getElementById("loginUsernameInput");
 const loginPasswordInput = document.getElementById("loginPasswordInput");
 const loginError = document.getElementById("loginError");
 const loginSubmitButton = document.getElementById("loginSubmitButton");
@@ -139,6 +140,7 @@ function setBackendStatus(state, message) {
 
 function showLoginOverlay() {
   loginOverlay?.classList.remove("hidden");
+  loginUsernameInput?.focus();
 }
 
 function hideLoginOverlay() {
@@ -157,13 +159,16 @@ function initializeAuthModule() {
     try {
       await apiRequest("/auth/login", {
         method: "POST",
-        body: { password: loginPasswordInput.value },
+        body: {
+          username: loginUsernameInput.value,
+          password: loginPasswordInput.value,
+        },
       });
       hideLoginOverlay();
       await initializeAppData();
     } catch (error) {
       if (loginError) {
-        loginError.textContent = error.message || "Invalid password.";
+        loginError.textContent = error.message || "Invalid username or password.";
         loginError.classList.remove("hidden");
       }
     } finally {

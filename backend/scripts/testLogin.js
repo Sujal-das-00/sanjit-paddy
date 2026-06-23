@@ -1,7 +1,7 @@
 async function main() {
-  const [password, port] = process.argv.slice(2);
-  if (!password) {
-    console.error('Usage: node scripts/testLogin.js <password> [port]');
+  const [username, password, port] = process.argv.slice(2);
+  if (!username || !password) {
+    console.error('Usage: node scripts/testLogin.js <username> <password> [port]');
     process.exit(1);
   }
 
@@ -9,7 +9,7 @@ async function main() {
   const res = await fetch(url, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ password }),
+    body: JSON.stringify({ username, password }),
   });
 
   const text = await res.text();

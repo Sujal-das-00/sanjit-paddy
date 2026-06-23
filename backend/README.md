@@ -14,27 +14,22 @@ Node.js + Express backend for the paddy management app using MVC architecture an
 ## Setup
 1. Create a SQL database.
 2. Run `database/schema.sql`.
-3. Copy `.env.example` to `.env` and update credentials.
+3. Create `.env` and update credentials.
 4. Install dependencies with `npm install`.
 5. Start with `npm run dev` or `npm start`.
+
+Required backend environment variables:
+- `DB_HOST`
+- `DB_PORT`
+- `DB_NAME`
+- `DB_USER`
+- `DB_PASSWORD`
+- `AUTH_COOKIE_SECRET`
 
 ## Entry Point
 - `src/server.js`
 
 ```bash
-node -e "
-const authService = require('./src/services/authService');
-const authModel = require('./src/models/authModel');
-(async () => {
-  const password = process.argv[1];
-  const salt = authService.createPasswordSalt();
-  const hash = authService.hashPassword(password, salt);
-  const user = await authModel.getUserByUsername('admin');
-  await authModel.updatePassword(user.id, hash, salt);
-  console.log('Password updated for admin.');
-  process.exit(0);
-})();
-" "YourNewPassword123"
 node scripts/createUser.js <username> <password>
-
+node scripts/testLogin.js <username> <password> [port]
 ```

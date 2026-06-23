@@ -14,6 +14,7 @@ const env = {
   dbConnectionLimit: Number(process.env.DB_CONNECTION_LIMIT || 10),
   authCookieName: process.env.AUTH_COOKIE_NAME || 'paddy_auth',
   authCookieMaxAgeMs: Number(process.env.AUTH_COOKIE_MAX_AGE_MS || 1000 * 60 * 60 * 24 * 14),
+  authCookieSecret: process.env.AUTH_COOKIE_SECRET || 'change-me-in-production',
 };
 
 module.exports = { env };

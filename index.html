@@ -1537,8 +1537,12 @@
       <article class="login-card">
         <p class="card-kicker">MAA LAXMI TRADERS</p>
         <h2>Sign in</h2>
-        <p class="page-copy">Enter the password to access the dashboard.</p>
+        <p class="page-copy">Enter your username and password to access the dashboard.</p>
         <form id="loginForm" novalidate>
+          <label class="field">
+            <span>Username</span>
+            <input type="text" id="loginUsernameInput" autocomplete="username" required />
+          </label>
           <label class="field">
             <span>Password</span>
             <input type="password" id="loginPasswordInput" autocomplete="current-password" required />

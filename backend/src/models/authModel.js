@@ -1,5 +1,10 @@
 const { query } = require('../config/database');
 
+async function getUserById(id) {
+  const rows = await query('SELECT * FROM users WHERE id = ? LIMIT 1', [id]);
+  return rows[0] || null;
+}
+
 async function getUserByUsername(username) {
   const rows = await query('SELECT * FROM users WHERE username = ? LIMIT 1', [username]);
   return rows[0] || null;
@@ -12,4 +17,4 @@ async function updatePassword(userId, passwordHash, passwordSalt) {
   );
 }
 
-module.exports = { getUserByUsername, updatePassword };
+module.exports = { getUserById, getUserByUsername, updatePassword };

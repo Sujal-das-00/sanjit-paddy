@@ -2,9 +2,20 @@ const authService = require('../services/authService');
 const { asyncHandler } = require('../utils/asyncHandler');
 const { AppError } = require('../utils/AppError');
 const { env } = require('../config/env');
+const crypto = require('crypto');
 
-function setAuthCookie(res) {
-  res.cookie(env.authCookieName, '1', {
+function createAuthToken(user) {
+  const payload = String(user.id);
+  const signature = crypto
+    .createHmac('sha256', env.authCookieSecret)
+    .update(payload)
+    .digest('hex');
+
+  return `${payload}.${signature}`;
+}
+
+function setAuthCookie(res, user) {
+  res.cookie(env.authCookieName, createAuthToken(user), {
     httpOnly: true,
     sameSite: 'lax',
     secure: env.isProduction,
@@ -17,9 +28,9 @@ function clearAuthCookie(res) {
 }
 
 exports.login = asyncHandler(async (req, res) => {
-  const { password } = req.body || {};
-  const user = await authService.login('admin', password);
-  setAuthCookie(res);
+  const { username, password } = req.body || {};
+  const user = await authService.login(username, password);
+  setAuthCookie(res, user);
   res.json({ user });
 });
 
