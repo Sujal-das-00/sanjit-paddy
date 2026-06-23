@@ -17,10 +17,9 @@
       <aside class="sidebar" id="sidebar">
         <div class="sidebar-top">
           <div class="brand-block">
-            <div class="brand-mark">PM</div>
+            <div class="brand-mark">MLT</div>
             <div class="brand-copy">
-              <strong>Paddy Manager</strong>
-              <span>Procurement Control Desk</span>
+              <strong>MAA LAXMI TRADERS</strong>
             </div>
           </div>
           <button class="sidebar-toggle" id="sidebarToggle" type="button" aria-label="Toggle sidebar">
@@ -33,44 +32,40 @@
 
         <nav class="sidebar-nav" aria-label="Main navigation">
           <button class="nav-item active" type="button" data-view="dashboard">
-            <span class="nav-icon">◫</span>
+            <span class="nav-icon">📊</span>
             <span class="nav-label">Dashboard</span>
           </button>
           <button class="nav-item" type="button" data-view="godown-entry">
-            <span class="nav-icon">▣</span>
+            <span class="nav-icon">🚚</span>
             <span class="nav-label">Godown Entry</span>
           </button>
           <button class="nav-item" type="button" data-view="home-entry">
-            <span class="nav-icon">⌂</span>
+            <span class="nav-icon">📦</span>
             <span class="nav-label">Home Purchase Entry</span>
           </button>
           <button class="nav-item" type="button" data-view="selling">
-            <span class="nav-icon">⇄</span>
+            <span class="nav-icon">🛒</span>
             <span class="nav-label">Selling</span>
           </button>
           <button class="nav-item" type="button" data-view="reports">
-            <span class="nav-icon">◧</span>
+            <span class="nav-icon">📃</span>
             <span class="nav-label">Reports</span>
           </button>
           <button class="nav-item" type="button" data-view="payments">
-            <span class="nav-icon">◍</span>
+            <span class="nav-icon">💰</span>
             <span class="nav-label">Payments</span>
           </button>
           <button class="nav-item" type="button" data-view="settings">
-            <span class="nav-icon">⚙</span>
+            <span class="nav-icon">⚙️</span>
             <span class="nav-label">Settings</span>
           </button>
         </nav>
 
-        <div class="sidebar-footer">
-          <div class="sidebar-metric">
-            <span>Mode</span>
-            <strong>Frontend Demo</strong>
-          </div>
-          <div class="sidebar-metric">
-            <span>Focus</span>
-            <strong>Fast Entry</strong>
-          </div>
+        <div class="sidebar-bottom">
+          <button class="logout-btn" id="logoutButton" type="button">
+            <span class="nav-icon">🚪</span>
+            <span class="nav-label">Logout</span>
+          </button>
         </div>
       </aside>
 
@@ -83,6 +78,7 @@
               Track procurement, monitor payable balances, and switch between purchase modules without leaving the page.
             </p>
           </div>
+          <div class="backend-status-pill loading" id="backendStatusPill">Checking backend...</div>
         </header>
 
         <main class="content-scroller">
@@ -218,7 +214,7 @@
 
                       <label class="field">
                         <span>Supplier Name</span>
-                        <select id="godownSupplierName" name="godownSupplierName">
+                        <select id="godownSupplierName" name="godownSupplierName" data-searchable-select="true">
                           <option value="">Select supplier</option>
                           <option>ABC Traders</option>
                           <option>XYZ Suppliers</option>
@@ -284,7 +280,6 @@
                         <p class="card-kicker">Section 3</p>
                         <h2>Paddy Entries</h2>
                       </div>
-                      <button class="secondary-btn" type="button" data-add-row="godown">Add Entry</button>
                     </div>
 
                     <div class="table-wrap">
@@ -293,7 +288,7 @@
                           <tr>
                             <th>Paddy Type</th>
                             <th>No. of Bags</th>
-                            <th>Rate / Kg</th>
+                            <th>Rate / 1000 Kg</th>
                             <th>Weight</th>
                             <th>Amount</th>
                             <th></th>
@@ -387,8 +382,8 @@
 
                   <div class="print-only slip-print" id="godownPrintArea">
                     <div class="print-title">
-                      <h3>Paddy Purchase Slip</h3>
-                      <p>Godown Purchase Entry</p>
+                      <h3>MAA LAXMI TRADERS</h3>
+                      <p>Purchase Slip</p>
                     </div>
                     <div class="print-grid">
                       <div><span>Date</span><strong id="godownPrintDate">-</strong></div>
@@ -412,7 +407,7 @@
                         <tr>
                           <th>Paddy Type</th>
                           <th>Bags</th>
-                          <th>Rate / Kg</th>
+                          <th>Rate / 1000 Kg</th>
                           <th>Weight</th>
                           <th>Amount</th>
                         </tr>
@@ -435,6 +430,7 @@
             </div>
 
             <div class="sticky-actions" data-sticky-actions="godown-entry">
+              <button class="secondary-btn" type="button" data-add-row="godown">Add Entry</button>
               <button class="primary-btn" type="button" data-action="save" data-module="godown" disabled>Save</button>
               <button class="primary-btn alt" type="button" data-action="print" data-module="godown" disabled>Save &amp; Print</button>
               <button class="ghost-btn" type="button" data-action="reset" data-module="godown">Reset</button>
@@ -471,7 +467,7 @@
 
                       <label class="field">
                         <span>Driver Name</span>
-                        <select id="homeDriverName">
+                        <select id="homeDriverName" data-searchable-select="true">
                           <option value="">Select driver</option>
                           <option>Driver A</option>
                           <option>Driver B</option>
@@ -492,7 +488,6 @@
                         <p class="card-kicker">Section 2</p>
                         <h2>Purchase Entry Table</h2>
                       </div>
-                      <button class="secondary-btn" type="button" data-add-row="home">Add Entry</button>
                     </div>
 
                     <div class="table-wrap">
@@ -503,7 +498,7 @@
                             <th>No. of Bags</th>
                             <th>Weight / Bag</th>
                             <th>Total Weight</th>
-                            <th>Rate / Kg</th>
+                            <th>Rate / 1000 Kg</th>
                             <th>Amount</th>
                             <th></th>
                           </tr>
@@ -511,7 +506,7 @@
                         <tbody id="homeEntriesBody">
                           <tr>
                             <td>
-                              <select class="entry-type">
+                              <select class="entry-type" data-searchable-select="true" data-allow-others="true">
                                 <option value="">Select type</option>
                                 <option>Basmati</option>
                                 <option>Swarna</option>
@@ -593,8 +588,8 @@
 
                   <div class="print-only slip-print" id="homePrintArea">
                     <div class="print-title">
-                      <h3>Paddy Purchase Slip</h3>
-                      <p>Home Purchase Entry</p>
+                      <h3>MAA LAXMI TRADERS</h3>
+                      <p>Purchase Slip</p>
                     </div>
                     <div class="print-grid">
                       <div><span>Date</span><strong id="homePrintDate">-</strong></div>
@@ -614,7 +609,7 @@
                           <th>Bags</th>
                           <th>Weight / Bag</th>
                           <th>Total Weight</th>
-                          <th>Rate / Kg</th>
+                          <th>Rate / 1000 Kg</th>
                           <th>Amount</th>
                         </tr>
                       </thead>
@@ -635,6 +630,7 @@
             </div>
 
             <div class="sticky-actions" data-sticky-actions="home-entry">
+              <button class="secondary-btn" type="button" data-add-row="home">Add Entry</button>
               <button class="primary-btn" type="button" data-action="save" data-module="home" disabled>Save</button>
               <button class="primary-btn alt" type="button" data-action="print" data-module="home" disabled>Save &amp; Print</button>
               <button class="ghost-btn" type="button" data-action="reset" data-module="home">Reset</button>
@@ -682,7 +678,7 @@
 
                       <label class="field">
                         <span>Company Name</span>
-                        <select id="sellingCompanyName" name="sellingCompanyName">
+                        <select id="sellingCompanyName" name="sellingCompanyName" data-searchable-select="true">
                           <option value="">Select company</option>
                           <option>Eastern Rice Mill</option>
                           <option>Shree Ganesh Foods</option>
@@ -748,7 +744,6 @@
                         <p class="card-kicker">Section 3</p>
                         <h2>Selling Entries</h2>
                       </div>
-                      <button class="secondary-btn" type="button" data-add-row="selling">Add Entry</button>
                     </div>
 
                     <div class="table-wrap">
@@ -757,7 +752,7 @@
                           <tr>
                             <th>Paddy Type</th>
                             <th>No. of Bags</th>
-                            <th>Rate / Kg</th>
+                            <th>Rate / 1000 Kg</th>
                             <th>Weight</th>
                             <th>Amount</th>
                             <th></th>
@@ -851,8 +846,8 @@
 
                   <div class="print-only slip-print" id="sellingPrintArea">
                     <div class="print-title">
-                      <h3>Paddy Selling Slip</h3>
-                      <p>Selling Entry</p>
+                      <h3>MAA LAXMI TRADERS</h3>
+                      <p>Selling Slip</p>
                     </div>
                     <div class="print-grid">
                       <div><span>Date</span><strong id="sellingPrintDate">-</strong></div>
@@ -876,7 +871,7 @@
                         <tr>
                           <th>Paddy Type</th>
                           <th>Bags</th>
-                          <th>Rate / Kg</th>
+                          <th>Rate / 1000 Kg</th>
                           <th>Weight</th>
                           <th>Amount</th>
                         </tr>
@@ -899,6 +894,7 @@
             </div>
 
             <div class="sticky-actions" data-sticky-actions="selling">
+              <button class="secondary-btn" type="button" data-add-row="selling">Add Entry</button>
               <button class="primary-btn" type="button" data-action="save" data-module="selling" disabled>Save</button>
               <button class="primary-btn alt" type="button" data-action="print" data-module="selling" disabled>Save &amp; Print</button>
               <button class="ghost-btn" type="button" data-action="reset" data-module="selling">Reset</button>
@@ -922,15 +918,21 @@
                   <button class="reports-view-btn" type="button" data-report-view="company">Company</button>
                 </div>
 
-                <label class="field reports-search-field">
-                  <span>Search Record</span>
-                  <input type="search" id="reportsSearchInput" placeholder="Search by party, slip, vehicle, sale, or purchase" />
-                </label>
+                <div class="toolbar-search-row">
+                  <label class="field reports-search-field">
+                    <span>Search Record</span>
+                    <input type="search" id="reportsSearchInput" placeholder="Search by party, slip, vehicle, sale, or purchase" />
+                  </label>
+                  <label class="field compact-search-field">
+                    <span>Slip ID</span>
+                    <input type="search" id="reportsSlipSearchInput" placeholder="#123" />
+                  </label>
+                </div>
 
                 <div class="reports-filter-grid">
                   <label class="field">
                     <span>Select Party</span>
-                    <select id="reportsPartyFilter">
+                    <select id="reportsPartyFilter" data-searchable-select="true">
                       <option value="">All Records</option>
                     </select>
                   </label>
@@ -1004,7 +1006,7 @@
                             <th>Material</th>
                             <th>Bags</th>
                             <th>Weight</th>
-                            <th>Rate / Kg</th>
+                            <th>Rate / 1000 Kg</th>
                             <th class="tally-amount-col">Amount</th>
                           </tr>
                         </thead>
@@ -1059,7 +1061,7 @@
                       <th>Material</th>
                       <th>Bags</th>
                       <th>Weight</th>
-                      <th>Rate / Kg</th>
+                      <th>Rate / 1000 Kg</th>
                       <th>Amount</th>
                     </tr>
                   </thead>
@@ -1155,10 +1157,16 @@
                   <button class="payments-view-btn" type="button" data-payment-view="company">Company</button>
                 </div>
 
-                <label class="field payments-search-field">
-                  <span>Search Party</span>
-                  <input type="search" id="paymentsSearchInput" placeholder="Search by party, slip, or vehicle" />
-                </label>
+                <div class="toolbar-search-row">
+                  <label class="field payments-search-field">
+                    <span>Search Party</span>
+                    <input type="search" id="paymentsSearchInput" placeholder="Search by party, slip, or vehicle" />
+                  </label>
+                  <label class="field compact-search-field">
+                    <span>Slip ID</span>
+                    <input type="search" id="paymentsSlipSearchInput" placeholder="#123" />
+                  </label>
+                </div>
               </article>
 
               <div class="payments-grid-head">
@@ -1251,13 +1259,19 @@
                           <span>Amount</span>
                           <input type="number" id="paymentEntryAmount" min="0" step="0.01" placeholder="0.00" required />
                         </label>
-                        <label class="field">
+                        <label class="field hidden" id="paymentEntrySupplierAccountWrap">
+                          <span>Supplier Account No</span>
+                          <select id="paymentEntrySupplierAccount" data-searchable-select="true">
+                            <option value="">Select supplier account</option>
+                          </select>
+                        </label>
+                        <label class="field" id="paymentEntryBankAccountWrap">
                           <span>Bank Account</span>
                           <input type="text" id="paymentEntryBankAccount" placeholder="HDFC Main Account" required />
                         </label>
                         <label class="field">
                           <span>Mode</span>
-                          <select id="paymentEntryMode" required>
+                          <select id="paymentEntryMode" required data-searchable-select="true">
                             <option value="">Select mode</option>
                             <option>Cash</option>
                             <option>Bank Transfer</option>
@@ -1286,13 +1300,6 @@
           </section>
           <section class="view" data-view-panel="settings">
             <div class="settings-layout">
-              <article class="card settings-intro-card">
-                <p class="card-kicker">Master Data</p>
-                <h2>Settings</h2>
-                <p class="page-copy">
-                  Choose a setting type below and open only that form. When the backend is integrated, these saved values will feed the dropdowns dynamically instead of using static options.
-                </p>
-              </article>
 
               <article class="card settings-shell">
                 <div class="settings-switcher" role="tablist" aria-label="Settings sections">
@@ -1300,6 +1307,7 @@
                   <button class="settings-switch-btn" type="button" data-settings-target="supplier">Supplier</button>
                   <button class="settings-switch-btn" type="button" data-settings-target="driver">Driver</button>
                   <button class="settings-switch-btn" type="button" data-settings-target="company">Company</button>
+                  <button class="settings-switch-btn" type="button" data-settings-target="account">Account</button>
                 </div>
 
                 <section class="settings-panel active" data-settings-panel="rice">
@@ -1317,7 +1325,8 @@
                       </label>
                     </div>
                     <div class="settings-form-actions">
-                      <button class="primary-btn" type="submit">Add Rice</button>
+                      <button class="primary-btn" id="riceSubmitButton" type="submit">Add Rice</button>
+                      <button class="ghost-btn hidden" id="riceCancelButton" type="button">Cancel</button>
                     </div>
                   </form>
                   <div class="settings-list-block">
@@ -1355,12 +1364,18 @@
                         <input type="text" id="supplierAadharInput" placeholder="1234 5678 9123" />
                       </label>
                       <label class="field span-2">
+                        <span>Account No</span>
+                        <textarea id="supplierAccountNumbersInput" rows="3" placeholder="One or multiple account numbers"></textarea>
+                        <small class="field-note">Use comma or new line to add multiple supplier account numbers.</small>
+                      </label>
+                      <label class="field span-2">
                         <span>Address</span>
                         <textarea id="supplierAddressInput" rows="3" placeholder="Enter address"></textarea>
                       </label>
                     </div>
                     <div class="settings-form-actions">
-                      <button class="primary-btn" type="submit">Add Supplier</button>
+                      <button class="primary-btn" id="supplierSubmitButton" type="submit">Add Supplier</button>
+                      <button class="ghost-btn hidden" id="supplierCancelButton" type="button">Cancel</button>
                     </div>
                   </form>
                   <div class="settings-list-block">
@@ -1391,7 +1406,8 @@
                       </label>
                     </div>
                     <div class="settings-form-actions">
-                      <button class="primary-btn" type="submit">Add Driver</button>
+                      <button class="primary-btn" id="driverSubmitButton" type="submit">Add Driver</button>
+                      <button class="ghost-btn hidden" id="driverCancelButton" type="button">Cancel</button>
                     </div>
                   </form>
                   <div class="settings-list-block">
@@ -1426,7 +1442,8 @@
                       </label>
                     </div>
                     <div class="settings-form-actions">
-                      <button class="primary-btn" type="submit">Add Company</button>
+                      <button class="primary-btn" id="companySubmitButton" type="submit">Add Company</button>
+                      <button class="ghost-btn hidden" id="companyCancelButton" type="button">Cancel</button>
                     </div>
                   </form>
                   <div class="settings-list-block">
@@ -1436,6 +1453,35 @@
                     </div>
                     <div class="settings-record-list" id="companySettingsList"></div>
                   </div>
+                </section>
+
+                <section class="settings-panel" data-settings-panel="account">
+                  <div class="card-head card-head-inline">
+                    <div>
+                      <p class="card-kicker">Account</p>
+                      <h2>Change Password</h2>
+                    </div>
+                  </div>
+                  <form class="settings-form" id="accountPasswordForm">
+                    <div class="form-grid single-col">
+                      <label class="field">
+                        <span>Current Password</span>
+                        <input type="password" id="accountCurrentPassword" autocomplete="current-password" required />
+                      </label>
+                      <label class="field">
+                        <span>New Password</span>
+                        <input type="password" id="accountNewPassword" autocomplete="new-password" minlength="4" required />
+                      </label>
+                      <label class="field">
+                        <span>Confirm New Password</span>
+                        <input type="password" id="accountConfirmPassword" autocomplete="new-password" minlength="4" required />
+                      </label>
+                    </div>
+                    <p class="field-error hidden" id="accountPasswordError"></p>
+                    <div class="settings-form-actions">
+                      <button class="primary-btn" id="accountPasswordSubmitButton" type="submit">Update Password</button>
+                    </div>
+                  </form>
                 </section>
               </article>
             </div>
@@ -1447,7 +1493,7 @@
     <template id="godownRowTemplate">
       <tr>
         <td>
-          <select class="entry-type">
+          <select class="entry-type" data-searchable-select="true" data-allow-others="true">
             <option value="">Select type</option>
             <option>Basmati</option>
             <option>Swarna</option>
@@ -1468,7 +1514,7 @@
     <template id="homeRowTemplate">
       <tr>
         <td>
-          <select class="entry-type">
+          <select class="entry-type" data-searchable-select="true" data-allow-others="true">
             <option value="">Select type</option>
             <option>Basmati</option>
             <option>Swarna</option>
@@ -1486,6 +1532,34 @@
         </td>
       </tr>
     </template>
+
+    <div class="login-overlay hidden" id="loginOverlay" role="dialog" aria-modal="true" aria-label="Sign in">
+      <article class="login-card">
+        <p class="card-kicker">MAA LAXMI TRADERS</p>
+        <h2>Sign in</h2>
+        <p class="page-copy">Enter the password to access the dashboard.</p>
+        <form id="loginForm" novalidate>
+          <label class="field">
+            <span>Password</span>
+            <input type="password" id="loginPasswordInput" autocomplete="current-password" required />
+          </label>
+          <p class="field-error hidden" id="loginError"></p>
+          <button class="primary-btn" id="loginSubmitButton" type="submit">Sign in</button>
+        </form>
+      </article>
+    </div>
+
+    <div class="backend-status-overlay" id="backendStatusOverlay" role="status" aria-live="polite">
+      <article class="backend-status-card">
+        <div class="backend-status-spinner" id="backendStatusSpinner"></div>
+        <p class="card-kicker">Backend Status</p>
+        <h2 id="backendStatusTitle">Connecting to backend</h2>
+        <p class="page-copy" id="backendStatusMessage">Loading fresh data from the backend. The app will open after the connection is confirmed.</p>
+        <div class="backend-status-actions">
+          <button class="primary-btn hidden" id="backendRetryButton" type="button">Retry Connection</button>
+        </div>
+      </article>
+    </div>
 
     <div class="app-toast" id="appToast" role="status" aria-live="polite"></div>
 

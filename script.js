@@ -16,40 +16,30 @@ const viewMeta = {
   dashboard: {
     eyebrow: "Operations Overview",
     title: "Paddy Purchase Dashboard",
-    copy:
-      "Track procurement, monitor payable balances, and switch between purchase modules without leaving the page.",
   },
   "godown-entry": {
     eyebrow: "Godown Purchase",
     title: "Godown Purchase Entry",
-    copy:
-      "Record supplier purchases, apply deductions, and calculate payable values instantly.",
   },
   "home-entry": {
     eyebrow: "Home Procurement",
     title: "Home Purchase Entry",
-    copy:
-      "Manage direct farmer purchases with live row-wise weight and amount calculations.",
-  },
+    },
   selling: {
     eyebrow: "Sales Module",
     title: "Selling Entry",
-    copy: "Capture company sales, apply deductions, and calculate the final amount instantly.",
   },
   reports: {
     eyebrow: "Analytics",
     title: "Reports",
-    copy: "Search farmer, supplier, and company records, open any transaction, and print detailed PDF-style reports from one screen.",
   },
   payments: {
     eyebrow: "Finance Desk",
     title: "Payments Workspace",
-    copy: "Search party ledgers, review outstanding balances, and record lump-sum settlements with bank account and reference tracking.",
   },
   settings: {
     eyebrow: "Configuration",
     title: "Settings",
-    copy: "Manage rice types, suppliers, drivers, and companies that will later power dropdowns dynamically from the backend.",
   },
 };
 
@@ -64,12 +54,25 @@ const pageCopy = document.getElementById("pageCopy");
 const dashboardStatValues = [...document.querySelectorAll(".stat-card .stat-value")];
 const dashboardStatMeta = [...document.querySelectorAll(".stat-card .stat-meta")];
 const dashboardRecentBody = document.querySelector(".dashboard-table tbody");
-const API_BASE = window.APP_CONFIG?.API_BASE_URL || "http://localhost:4000/api";
+const backendStatusOverlay = document.getElementById("backendStatusOverlay");
+const backendStatusTitle = document.getElementById("backendStatusTitle");
+const backendStatusMessage = document.getElementById("backendStatusMessage");
+const backendRetryButton = document.getElementById("backendRetryButton");
+const backendStatusPill = document.getElementById("backendStatusPill");
+const backendStatusSpinner = document.getElementById("backendStatusSpinner");
+const loginOverlay = document.getElementById("loginOverlay");
+const loginForm = document.getElementById("loginForm");
+const loginPasswordInput = document.getElementById("loginPasswordInput");
+const loginError = document.getElementById("loginError");
+const loginSubmitButton = document.getElementById("loginSubmitButton");
+const logoutButton = document.getElementById("logoutButton");
+const API_BASE = window.APP_CONFIG?.API_BASE_URL || "/api";
 let currentReportDetail = null;
 let currentPaymentDetail = null;
+let backendConnected = false;
 
 function buildApiUrl(path, query = {}) {
-  const url = new URL(`${API_BASE}${path}`);
+  const url = new URL(`${API_BASE}${path}`, window.location.origin);
   Object.entries(query).forEach(([key, value]) => {
     if (value !== undefined && value !== null && value !== "") {
       url.searchParams.set(key, value);
@@ -82,6 +85,7 @@ async function apiRequest(path, options = {}) {
   const { method = "GET", query, body } = options;
   const response = await fetch(buildApiUrl(path, query), {
     method,
+    credentials: "include",
     headers: {
       "Content-Type": "application/json",
     },
@@ -91,7 +95,9 @@ async function apiRequest(path, options = {}) {
   const payload = await response.json().catch(() => ({}));
   if (!response.ok) {
     const message = payload.message || `Request failed with status ${response.status}`;
-    throw new Error(message);
+    const error = new Error(message);
+    error.status = response.status;
+    throw error;
   }
 
   return payload;
@@ -99,6 +105,271 @@ async function apiRequest(path, options = {}) {
 
 function setStoreItems(target, items) {
   target.splice(0, target.length, ...items);
+}
+
+
+function setBackendStatus(state, message) {
+  backendConnected = state === "connected";
+  if (backendStatusPill) {
+    backendStatusPill.classList.remove("loading", "connected", "disconnected");
+    backendStatusPill.classList.add(state);
+    backendStatusPill.textContent =
+      state === "connected" ? "Backend connected" : state === "disconnected" ? "Backend disconnected" : "Checking backend...";
+  }
+
+  if (!backendStatusOverlay || !backendStatusTitle || !backendStatusMessage || !backendRetryButton || !backendStatusSpinner) {
+    return;
+  }
+
+  if (state === "connected") {
+    backendStatusOverlay.classList.add("hidden");
+    backendRetryButton.classList.add("hidden");
+    backendStatusSpinner.classList.remove("hidden");
+    return;
+  }
+
+  backendStatusOverlay.classList.remove("hidden");
+  backendStatusTitle.textContent = state === "disconnected" ? "Backend not connected" : "Connecting to backend";
+  backendStatusMessage.textContent = message || (state === "disconnected"
+    ? "Backend is not reachable. Fresh data could not be loaded, so stale screen data is hidden until the connection returns."
+    : "Loading fresh data from the backend. The app will open after the connection is confirmed.");
+  backendRetryButton.classList.toggle("hidden", state !== "disconnected");
+  backendStatusSpinner.classList.toggle("hidden", state === "disconnected");
+}
+
+function showLoginOverlay() {
+  loginOverlay?.classList.remove("hidden");
+}
+
+function hideLoginOverlay() {
+  loginOverlay?.classList.add("hidden");
+  if (loginForm) loginForm.reset();
+  loginError?.classList.add("hidden");
+}
+
+function initializeAuthModule() {
+  if (!loginForm) return;
+
+  loginForm.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    loginError?.classList.add("hidden");
+    loginSubmitButton.disabled = true;
+    try {
+      await apiRequest("/auth/login", {
+        method: "POST",
+        body: { password: loginPasswordInput.value },
+      });
+      hideLoginOverlay();
+      await initializeAppData();
+    } catch (error) {
+      if (loginError) {
+        loginError.textContent = error.message || "Invalid password.";
+        loginError.classList.remove("hidden");
+      }
+    } finally {
+      loginSubmitButton.disabled = false;
+    }
+  });
+
+  logoutButton?.addEventListener("click", async () => {
+    try {
+      await apiRequest("/auth/logout", { method: "POST" });
+    } catch (error) {
+      console.error(error);
+    }
+    showLoginOverlay();
+  });
+}
+
+async function bootstrapSession() {
+  try {
+    await apiRequest("/auth/me");
+    hideLoginOverlay();
+    await initializeAppData();
+  } catch (error) {
+    if (error.status === 401) {
+      setBackendStatus("connected");
+      showLoginOverlay();
+    } else {
+      setBackendStatus("disconnected", error.message || "Backend is not reachable.");
+    }
+  }
+}
+
+function parseAccountNumbers(value) {
+  return String(value || "")
+    .split(/\n|,/)
+    .map((item) => item.trim())
+    .filter(Boolean);
+}
+
+function renderSupplierAccountOptions(accounts = []) {
+  const select = document.getElementById("paymentEntrySupplierAccount");
+  if (!select) return;
+  const currentValue = select.value;
+  select.innerHTML = [`<option value="">Select supplier account</option>`]
+    .concat(accounts.map((item) => `<option>${escapeHtml(item)}</option>`))
+    .join("");
+  if (accounts.includes(currentValue)) {
+    select.value = currentValue;
+  }
+  refreshSearchableSelect(select);
+}
+
+function getSelectPlaceholder(select) {
+  return [...select.options].find((option) => option.value === "")?.textContent || "Select option";
+}
+
+function closeAllSearchableSelects(exceptSelect = null) {
+  document.querySelectorAll('[data-searchable-select="true"]').forEach((select) => {
+    if (select === exceptSelect || !select._searchableRefs) return;
+    select._searchableRefs.wrapper.classList.remove("open");
+    select._searchableRefs.panel.classList.add("hidden");
+    select._searchableRefs.search.value = "";
+  });
+}
+
+function renderSearchableSelectOptions(select) {
+  if (!select?._searchableRefs) return;
+  const { options, search } = select._searchableRefs;
+  const query = search.value.trim().toLowerCase();
+  const records = [...select.options]
+    .filter((option) => !option.disabled)
+    .filter((option) => !query || option.textContent.toLowerCase().includes(query));
+
+  options.innerHTML = records.length
+    ? records
+        .map((option) => `
+          <button
+            class="search-select-option${select.value === option.value ? " active" : ""}${option.value === "" ? " placeholder" : ""}"
+            type="button"
+            data-option-value="${escapeHtml(option.value)}"
+          >
+            ${escapeHtml(option.textContent)}
+          </button>
+        `)
+        .join("")
+    : `<div class="search-select-empty">No matching option found.</div>`;
+
+  options.querySelectorAll("[data-option-value]").forEach((button) => {
+    button.addEventListener("click", () => {
+      select.value = button.dataset.optionValue;
+      refreshSearchableSelect(select);
+      closeAllSearchableSelects();
+      select.dispatchEvent(new Event("change", { bubbles: true }));
+      select.dispatchEvent(new Event("input", { bubbles: true }));
+    });
+  });
+}
+
+function refreshSearchableSelect(select) {
+  if (!select || select.dataset.searchableSelect !== "true") return;
+  if (!select._searchableRefs) {
+    ensureSearchableSelect(select);
+    return;
+  }
+
+  const selectedOption = [...select.options].find((option) => option.value === select.value);
+  const label = selectedOption?.textContent || getSelectPlaceholder(select);
+  select._searchableRefs.label.textContent = label;
+  select._searchableRefs.trigger.classList.toggle("placeholder", !select.value);
+  renderSearchableSelectOptions(select);
+}
+
+function ensureSearchableSelect(select) {
+  if (!select || select.dataset.searchableSelect !== "true") return;
+  if (select._searchableRefs) {
+    refreshSearchableSelect(select);
+    return;
+  }
+
+  select.classList.add("native-search-select");
+
+  const wrapper = document.createElement("div");
+  wrapper.className = "search-select";
+  wrapper.innerHTML = `
+    <button class="search-select-trigger placeholder" type="button">
+      <span class="search-select-trigger-label"></span>
+      <span class="search-select-trigger-icon">▾</span>
+    </button>
+    <div class="search-select-panel hidden">
+      <input class="search-select-input" type="search" placeholder="Search option" />
+      <div class="search-select-options"></div>
+    </div>
+  `;
+
+  select.insertAdjacentElement("afterend", wrapper);
+  const refs = {
+    wrapper,
+    trigger: wrapper.querySelector(".search-select-trigger"),
+    label: wrapper.querySelector(".search-select-trigger-label"),
+    panel: wrapper.querySelector(".search-select-panel"),
+    search: wrapper.querySelector(".search-select-input"),
+    options: wrapper.querySelector(".search-select-options"),
+  };
+  select._searchableRefs = refs;
+
+  refs.trigger.addEventListener("click", () => {
+    const open = refs.wrapper.classList.contains("open");
+    closeAllSearchableSelects(open ? null : select);
+    refs.wrapper.classList.toggle("open", !open);
+    refs.panel.classList.toggle("hidden", open);
+    refs.search.value = "";
+    renderSearchableSelectOptions(select);
+    if (!open) refs.search.focus();
+  });
+
+  refs.search.addEventListener("input", () => {
+    renderSearchableSelectOptions(select);
+  });
+
+  refs.search.addEventListener("keydown", (event) => {
+    if (event.key === "Escape") {
+      closeAllSearchableSelects();
+      refs.trigger.focus();
+    }
+  });
+
+  select.addEventListener("change", () => refreshSearchableSelect(select));
+  refreshSearchableSelect(select);
+}
+
+function getEntryTypeValue(row) {
+  const select = row.querySelector(".entry-type");
+  const otherInput = row.querySelector(".entry-type-other");
+  if (!select) return "";
+  if (select.value === "__other__") {
+    return otherInput?.value.trim() || "";
+  }
+  return select.value || "";
+}
+
+function syncEntryTypeOtherField(row) {
+  const select = row.querySelector(".entry-type");
+  if (!select || select.dataset.allowOthers !== "true") return;
+
+  let container = select.parentElement;
+  if (!container.classList.contains("entry-type-stack")) {
+    container = document.createElement("div");
+    container.className = "entry-type-stack";
+    select.parentNode.insertBefore(container, select);
+    container.appendChild(select);
+  }
+
+  let otherInput = container.querySelector(".entry-type-other");
+  if (!otherInput) {
+    otherInput = document.createElement("input");
+    otherInput.type = "text";
+    otherInput.className = "entry-type-other hidden";
+    otherInput.placeholder = "Enter paddy name";
+    container.appendChild(otherInput);
+  }
+
+  const show = select.value === "__other__";
+  otherInput.classList.toggle("hidden", !show);
+  if (!show) {
+    otherInput.value = "";
+  }
 }
 
 function replaceSelectOptions(select, placeholder, items) {
@@ -110,13 +381,24 @@ function replaceSelectOptions(select, placeholder, items) {
   if (items.includes(currentValue)) {
     select.value = currentValue;
   }
+  refreshSearchableSelect(select);
 }
 
 function refreshRiceTypeOptions() {
   document.querySelectorAll(".entry-type").forEach((select) => {
-    const currentValue = select.value;
+    const row = select.closest("tr");
+    const currentValue = getEntryTypeValue(row);
     select.innerHTML = buildTypeOptions();
-    select.value = paddyTypes.includes(currentValue) ? currentValue : "";
+    if (currentValue && !paddyTypes.includes(currentValue)) {
+      select.value = "__other__";
+      syncEntryTypeOtherField(row);
+      const otherInput = row.querySelector(".entry-type-other");
+      if (otherInput) otherInput.value = currentValue;
+    } else {
+      select.value = paddyTypes.includes(currentValue) ? currentValue : "";
+      syncEntryTypeOtherField(row);
+    }
+    refreshSearchableSelect(select);
   });
 }
 
@@ -168,23 +450,27 @@ function formatStatusChip(status) {
 }
 
 function mapSettingRecord(type, item) {
-  if (type === "rice") return { name: item.name };
+  if (type === "rice") return { id: item.id, name: item.name };
   if (type === "supplier") {
     return {
+      id: item.id,
       name: item.name,
       mobile: item.mobile || "",
       pan: item.pan_number || "",
       aadhar: item.aadhar_number || "",
       address: item.address || "",
+      accountNumbers: item.account_numbers || [],
     };
   }
   if (type === "driver") {
     return {
+      id: item.id,
       name: item.name,
       mobile: item.mobile || "",
     };
   }
   return {
+    id: item.id,
     name: item.name,
     mobile: item.mobile || "",
     address: item.address || "",
@@ -296,6 +582,7 @@ function normalizePaymentDetail(item) {
     ...base,
     advanceAmount,
     creditAmount,
+    supplierAccountNumbers: item.supplierAccountNumbers || item.supplier_account_numbers || [],
     details: buildPaymentDetails({
       ...base,
       advanceAmount,
@@ -473,7 +760,18 @@ function getLocalDateString() {
 function buildTypeOptions() {
   return `<option value="">Select type</option>${paddyTypes
     .map((type) => `<option>${type}</option>`)
-    .join("")}`;
+    .join("")}<option value="__other__">Others</option>`;
+}
+
+document.addEventListener("click", (event) => {
+  if (!(event.target instanceof HTMLElement) || event.target.closest(".search-select")) return;
+  closeAllSearchableSelects();
+});
+
+function initializeSearchableSelects() {
+  document.querySelectorAll('[data-searchable-select="true"]').forEach((select) => {
+    ensureSearchableSelect(select);
+  });
 }
 
 function activateView(viewName) {
@@ -667,6 +965,11 @@ function createPurchaseModule(config) {
       const currentValue = typeSelect.value;
       typeSelect.innerHTML = buildTypeOptions();
       typeSelect.value = currentValue;
+      syncEntryTypeOtherField(row);
+      ensureSearchableSelect(typeSelect);
+      typeSelect.addEventListener("change", () => {
+        syncEntryTypeOtherField(row);
+      });
     }
 
     row.dataset.bound = "true";
@@ -1038,9 +1341,9 @@ createPurchaseModule({
     const averageWeight = parseNumber(fields.averageWeight.dataset.value);
     const bags = parseNumber(row.querySelector(".entry-bags").value);
     const rate = parseNumber(row.querySelector(".entry-rate").value);
-    const type = row.querySelector(".entry-type").value;
+    const type = getEntryTypeValue(row);
     const weight = averageWeight * bags;
-    const amount = weight * rate;
+    const amount = (weight / 1000) * rate;
 
     if (shouldWrite) {
       row.querySelector(".entry-weight").value = formatKg(weight);
@@ -1229,9 +1532,9 @@ createPurchaseModule({
     const averageWeight = parseNumber(fields.averageWeight.dataset.value);
     const bags = parseNumber(row.querySelector(".entry-bags").value);
     const rate = parseNumber(row.querySelector(".entry-rate").value);
-    const type = row.querySelector(".entry-type").value;
+    const type = getEntryTypeValue(row);
     const weight = averageWeight * bags;
-    const amount = weight * rate;
+    const amount = (weight / 1000) * rate;
 
     if (shouldWrite) {
       row.querySelector(".entry-weight").value = formatKg(weight);
@@ -1374,9 +1677,9 @@ createPurchaseModule({
     const bags = parseNumber(row.querySelector(".entry-bags").value);
     const weightPerBag = parseNumber(row.querySelector(".entry-weight-per-bag").value);
     const rate = parseNumber(row.querySelector(".entry-rate").value);
-    const type = row.querySelector(".entry-type").value;
+    const type = getEntryTypeValue(row);
     const weight = bags * weightPerBag;
-    const amount = weight * rate;
+    const amount = (weight / 1000) * rate;
 
     row.querySelector(".entry-weight").value = formatKg(weight);
     row.querySelector(".entry-amount").value = formatMoney(amount);
@@ -1443,6 +1746,48 @@ function escapeHtml(value) {
     .replace(/'/g, "&#39;");
 }
 
+function getSettingsPath(type) {
+  if (type === "rice") return "/settings/rice-types";
+  if (type === "supplier") return "/settings/suppliers";
+  if (type === "driver") return "/settings/drivers";
+  return "/settings/companies";
+}
+
+function buildSettingsActionButtons(type, item) {
+  return `
+    <div class="settings-action-group">
+      <button class="settings-edit-btn" type="button" data-settings-edit="${escapeHtml(type)}" data-settings-id="${escapeHtml(String(item.id))}">Edit</button>
+      <button class="settings-delete-btn" type="button" data-settings-delete="${escapeHtml(type)}" data-settings-id="${escapeHtml(String(item.id))}">Delete</button>
+    </div>
+  `;
+}
+
+function attachSettingsDeleteHandlers(onEdit) {
+  document.querySelectorAll('[data-settings-delete]').forEach((button) => {
+    button.addEventListener('click', async () => {
+      const type = button.dataset.settingsDelete;
+      const id = button.dataset.settingsId;
+      try {
+        await apiRequest(`${getSettingsPath(type)}/${id}`, {
+          method: 'DELETE',
+        });
+        await loadSettingsData();
+        showToast(`${type.charAt(0).toUpperCase() + type.slice(1)} deleted from active dropdowns.`);
+      } catch (error) {
+        notifyError(error);
+      }
+    });
+  });
+
+  document.querySelectorAll('[data-settings-edit]').forEach((button) => {
+    button.addEventListener('click', () => {
+      const type = button.dataset.settingsEdit;
+      const id = button.dataset.settingsId;
+      onEdit(type, id);
+    });
+  });
+}
+
 function renderSettingsChips(items, containerId, countId, emptyLabel) {
   const container = document.getElementById(containerId);
   const count = document.getElementById(countId);
@@ -1455,7 +1800,12 @@ function renderSettingsChips(items, containerId, countId, emptyLabel) {
   }
 
   container.innerHTML = items
-    .map((item) => `<span class="settings-chip">${escapeHtml(item.name)}</span>`)
+    .map((item) => `
+      <span class="settings-chip">
+        <span>${escapeHtml(item.name)}</span>
+        ${buildSettingsActionButtons('rice', item)}
+      </span>
+    `)
     .join("");
 }
 
@@ -1482,10 +1832,14 @@ function renderAllSettings() {
     "No suppliers added yet",
     (item) => `
       <article class="settings-record">
-        <strong>${escapeHtml(item.name)}</strong>
-        <span>Mob: ${escapeHtml(item.mobile)}</span>
+        <div class="settings-record-head">
+          <strong>${escapeHtml(item.name)}</strong>
+          ${buildSettingsActionButtons('supplier', item)}
+        </div>
+        <span>Mob: ${escapeHtml(item.mobile || "-")}</span>
         <span>PAN: ${escapeHtml(item.pan || "-")}</span>
         <span>Aadhar: ${escapeHtml(item.aadhar || "-")}</span>
+        <span>Accounts: ${escapeHtml((item.accountNumbers || []).join(", ") || "-")}</span>
         <p>${escapeHtml(item.address || "-")}</p>
       </article>
     `
@@ -1498,7 +1852,10 @@ function renderAllSettings() {
     (item) => `
       <article class="settings-record compact">
         <strong>${escapeHtml(item.name)}</strong>
-        <span>${escapeHtml(item.mobile)}</span>
+        <div class="settings-record-head">
+          <span>${escapeHtml(item.mobile || "-")}</span>
+          ${buildSettingsActionButtons('driver', item)}
+        </div>
       </article>
     `
   );
@@ -1509,12 +1866,16 @@ function renderAllSettings() {
     "No companies added yet",
     (item) => `
       <article class="settings-record">
-        <strong>${escapeHtml(item.name)}</strong>
-        <span>Mob: ${escapeHtml(item.mobile)}</span>
+        <div class="settings-record-head">
+          <strong>${escapeHtml(item.name)}</strong>
+          ${buildSettingsActionButtons('company', item)}
+        </div>
+        <span>Mob: ${escapeHtml(item.mobile || "-")}</span>
         <p>${escapeHtml(item.address || "-")}</p>
       </article>
     `
   );
+  attachSettingsDeleteHandlers(window.startSettingsEdit || (() => {}));
 }
 
 function initializeSettingsModule() {
@@ -1527,6 +1888,80 @@ function initializeSettingsModule() {
 
   if (!riceForm || !supplierForm || !driverForm || !companyForm) return;
 
+  const forms = {
+    rice: {
+      form: riceForm,
+      path: "/settings/rice-types",
+      submitButton: document.getElementById("riceSubmitButton"),
+      cancelButton: document.getElementById("riceCancelButton"),
+      getBody: () => ({
+        name: document.getElementById("riceNameInput").value.trim(),
+      }),
+      fill: (item) => {
+        document.getElementById("riceNameInput").value = item.name || "";
+      },
+    },
+    supplier: {
+      form: supplierForm,
+      path: "/settings/suppliers",
+      submitButton: document.getElementById("supplierSubmitButton"),
+      cancelButton: document.getElementById("supplierCancelButton"),
+      getBody: () => ({
+        name: document.getElementById("supplierNameInput").value.trim(),
+        mobile: document.getElementById("supplierMobileInput").value.trim(),
+        panNumber: document.getElementById("supplierPanInput").value.trim(),
+        aadharNumber: document.getElementById("supplierAadharInput").value.trim(),
+        address: document.getElementById("supplierAddressInput").value.trim(),
+        accountNumbers: parseAccountNumbers(document.getElementById("supplierAccountNumbersInput").value),
+      }),
+      fill: (item) => {
+        document.getElementById("supplierNameInput").value = item.name || "";
+        document.getElementById("supplierMobileInput").value = item.mobile || "";
+        document.getElementById("supplierPanInput").value = item.pan || "";
+        document.getElementById("supplierAadharInput").value = item.aadhar || "";
+        document.getElementById("supplierAddressInput").value = item.address || "";
+        document.getElementById("supplierAccountNumbersInput").value = (item.accountNumbers || []).join("\n");
+      },
+    },
+    driver: {
+      form: driverForm,
+      path: "/settings/drivers",
+      submitButton: document.getElementById("driverSubmitButton"),
+      cancelButton: document.getElementById("driverCancelButton"),
+      getBody: () => ({
+        name: document.getElementById("driverNameInput").value.trim(),
+        mobile: document.getElementById("driverMobileInput").value.trim(),
+      }),
+      fill: (item) => {
+        document.getElementById("driverNameInput").value = item.name || "";
+        document.getElementById("driverMobileInput").value = item.mobile || "";
+      },
+    },
+    company: {
+      form: companyForm,
+      path: "/settings/companies",
+      submitButton: document.getElementById("companySubmitButton"),
+      cancelButton: document.getElementById("companyCancelButton"),
+      getBody: () => ({
+        name: document.getElementById("companyNameInput").value.trim(),
+        address: document.getElementById("companyAddressInput").value.trim(),
+        mobile: document.getElementById("companyMobileInput").value.trim(),
+      }),
+      fill: (item) => {
+        document.getElementById("companyNameInput").value = item.name || "";
+        document.getElementById("companyAddressInput").value = item.address || "";
+        document.getElementById("companyMobileInput").value = item.mobile || "";
+      },
+    },
+  };
+
+  const editingState = {
+    rice: null,
+    supplier: null,
+    driver: null,
+    company: null,
+  };
+
   function activateSettingsPanel(target) {
     switchButtons.forEach((button) => {
       button.classList.toggle("active", button.dataset.settingsTarget === target);
@@ -1537,56 +1972,109 @@ function initializeSettingsModule() {
     });
   }
 
-  async function submitSetting(event, path, bodyBuilder) {
-    event.preventDefault();
+  function resetEditState(type) {
+    const config = forms[type];
+    editingState[type] = null;
+    config.form.reset();
+    config.submitButton.textContent =
+      type === "rice" ? "Add Rice" : type === "supplier" ? "Add Supplier" : type === "driver" ? "Add Driver" : "Add Company";
+    config.cancelButton.classList.add("hidden");
+  }
+
+  async function submitSetting(type) {
+    const config = forms[type];
+    const editingId = editingState[type];
     try {
-      await apiRequest(path, {
-        method: "POST",
-        body: bodyBuilder(),
+      await apiRequest(editingId ? `${config.path}/${editingId}` : config.path, {
+        method: editingId ? "PUT" : "POST",
+        body: config.getBody(),
       });
-      event.target.reset();
+      resetEditState(type);
       await loadSettingsData();
+      showToast(editingId ? `${type.charAt(0).toUpperCase() + type.slice(1)} updated.` : `${type.charAt(0).toUpperCase() + type.slice(1)} added.`);
     } catch (error) {
       notifyError(error);
     }
+  }
+
+  function startEdit(type, id) {
+    const item = settingsStore[type].find((entry) => String(entry.id) === String(id));
+    if (!item) return;
+    const config = forms[type];
+    editingState[type] = String(id);
+    config.fill(item);
+    config.submitButton.textContent =
+      type === "rice" ? "Save Rice" : type === "supplier" ? "Save Supplier" : type === "driver" ? "Save Driver" : "Save Company";
+    config.cancelButton.classList.remove("hidden");
+    activateSettingsPanel(type);
   }
 
   switchButtons.forEach((button) => {
     button.addEventListener("click", () => activateSettingsPanel(button.dataset.settingsTarget));
   });
 
+  Object.entries(forms).forEach(([type, config]) => {
+    config.form.addEventListener("submit", (event) => {
+      event.preventDefault();
+      submitSetting(type);
+    });
+    config.cancelButton?.addEventListener("click", () => resetEditState(type));
+  });
+
   activateSettingsPanel("rice");
 
-  riceForm.addEventListener("submit", (event) => submitSetting(event, "/settings/rice-types", () => ({
-    name: document.getElementById("riceNameInput").value.trim(),
-  })));
+  window.startSettingsEdit = startEdit;
+  window.refreshSettingsView = () => {
+    renderAllSettings();
+    attachSettingsDeleteHandlers(startEdit);
+  };
+  window.refreshSettingsView();
+}
 
-  supplierForm.addEventListener("submit", (event) => submitSetting(event, "/settings/suppliers", () => ({
-    name: document.getElementById("supplierNameInput").value.trim(),
-    mobile: document.getElementById("supplierMobileInput").value.trim(),
-    panNumber: document.getElementById("supplierPanInput").value.trim(),
-    aadharNumber: document.getElementById("supplierAadharInput").value.trim(),
-    address: document.getElementById("supplierAddressInput").value.trim(),
-  })));
+function initializeAccountSettings() {
+  const form = document.getElementById("accountPasswordForm");
+  const currentPasswordInput = document.getElementById("accountCurrentPassword");
+  const newPasswordInput = document.getElementById("accountNewPassword");
+  const confirmPasswordInput = document.getElementById("accountConfirmPassword");
+  const errorText = document.getElementById("accountPasswordError");
+  const submitButton = document.getElementById("accountPasswordSubmitButton");
 
-  driverForm.addEventListener("submit", (event) => submitSetting(event, "/settings/drivers", () => ({
-    name: document.getElementById("driverNameInput").value.trim(),
-    mobile: document.getElementById("driverMobileInput").value.trim(),
-  })));
+  if (!form) return;
 
-  companyForm.addEventListener("submit", (event) => submitSetting(event, "/settings/companies", () => ({
-    name: document.getElementById("companyNameInput").value.trim(),
-    address: document.getElementById("companyAddressInput").value.trim(),
-    mobile: document.getElementById("companyMobileInput").value.trim(),
-  })));
+  form.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    errorText.classList.add("hidden");
 
-  window.refreshSettingsView = renderAllSettings;
-  renderAllSettings();
+    if (newPasswordInput.value !== confirmPasswordInput.value) {
+      errorText.textContent = "New password and confirmation do not match.";
+      errorText.classList.remove("hidden");
+      return;
+    }
+
+    submitButton.disabled = true;
+    try {
+      await apiRequest("/auth/password", {
+        method: "POST",
+        body: {
+          currentPassword: currentPasswordInput.value,
+          newPassword: newPasswordInput.value,
+        },
+      });
+      form.reset();
+      showToast("Password updated.");
+    } catch (error) {
+      errorText.textContent = error.message || "Could not update password.";
+      errorText.classList.remove("hidden");
+    } finally {
+      submitButton.disabled = false;
+    }
+  });
 }
 
 function initializeReportsModule() {
   const viewButtons = [...document.querySelectorAll("[data-report-view]")];
   const searchInput = document.getElementById("reportsSearchInput");
+  const slipSearchInput = document.getElementById("reportsSlipSearchInput");
   const partyFilter = document.getElementById("reportsPartyFilter");
   const dateFromInput = document.getElementById("reportsDateFrom");
   const dateToInput = document.getElementById("reportsDateTo");
@@ -1599,7 +2087,7 @@ function initializeReportsModule() {
   const modalClose = document.getElementById("reportsModalClose");
   const reportsPanel = document.querySelector('[data-view-panel="reports"]');
 
-  if (!viewButtons.length || !searchInput || !partyFilter || !dateFromInput || !dateToInput || !clearFiltersButton || !cardGrid || !modalBackdrop || !modalClose || !reportsPanel) {
+  if (!viewButtons.length || !searchInput || !slipSearchInput || !partyFilter || !dateFromInput || !dateToInput || !clearFiltersButton || !cardGrid || !modalBackdrop || !modalClose || !reportsPanel) {
     return;
   }
 
@@ -1677,11 +2165,15 @@ function initializeReportsModule() {
 
   function getFilteredReports() {
     const query = searchInput.value.trim().toLowerCase();
+    const slipQuery = slipSearchInput.value.trim().toLowerCase();
     const party = partyFilter.value;
 
     return getActiveRecords().filter((record) => {
       if (party && record.partyName !== party) return false;
       if (!isInDateRange(record)) return false;
+      if (slipQuery) {
+        if (String(record.id || "") !== slipQuery) return false;
+      }
       if (!query) return true;
 
       return [record.partyName, record.slipNumber, record.vehicleNumber, record.typeLabel, record.kindLabel]
@@ -1763,6 +2255,7 @@ function initializeReportsModule() {
     if (parties.includes(currentValue)) {
       partyFilter.value = currentValue;
     }
+    refreshSearchableSelect(partyFilter);
   }
 
   function renderModal(record) {
@@ -1872,8 +2365,8 @@ function initializeReportsModule() {
   function renderSinglePrint(record) {
     const finalAmount = parseNumber(record.purchaseTotal) - parseNumber(record.loadingDiscount);
     printRefs.singleBlock.classList.remove("hidden");
-    printRefs.title.textContent = record.typeLabel;
-    printRefs.subtitle.textContent = `${record.kindLabel} slip report`;
+    printRefs.title.textContent = "MAA LAXMI TRADERS";
+    printRefs.subtitle.textContent = `${record.typeLabel} - ${record.kindLabel} slip report`;
     printRefs.name.textContent = record.partyName;
     printRefs.id.textContent = record.id || "-";
     printRefs.kind.textContent = record.typeLabel;
@@ -1999,6 +2492,7 @@ function initializeReportsModule() {
 
   function clearFilters() {
     searchInput.value = "";
+    slipSearchInput.value = "";
     partyFilter.value = "";
     dateFromInput.value = "";
     dateToInput.value = "";
@@ -2019,6 +2513,7 @@ function initializeReportsModule() {
     button.addEventListener("click", () => switchView(button.dataset.reportView));
   });
   searchInput.addEventListener("input", renderCards);
+  slipSearchInput.addEventListener("input", renderCards);
   partyFilter.addEventListener("change", renderCards);
   dateFromInput.addEventListener("change", renderCards);
   dateToInput.addEventListener("change", renderCards);
@@ -2037,14 +2532,19 @@ function initializeReportsModule() {
 function initializePaymentsModule() {
   const viewButtons = [...document.querySelectorAll("[data-payment-view]")];
   const searchInput = document.getElementById("paymentsSearchInput");
+  const slipSearchInput = document.getElementById("paymentsSlipSearchInput");
   const listLabel = document.getElementById("paymentsListLabel");
   const listCount = document.getElementById("paymentsListCount");
   const cardGrid = document.getElementById("paymentsCardGrid");
   const modalBackdrop = document.getElementById("paymentsModalBackdrop");
   const modalClose = document.getElementById("paymentsModalClose");
   const paymentForm = document.getElementById("paymentEntryForm");
+  const paymentEntryBankAccount = document.getElementById("paymentEntryBankAccount");
+  const paymentEntryBankAccountWrap = document.getElementById("paymentEntryBankAccountWrap");
+  const paymentEntrySupplierAccount = document.getElementById("paymentEntrySupplierAccount");
+  const paymentEntrySupplierAccountWrap = document.getElementById("paymentEntrySupplierAccountWrap");
 
-  if (!viewButtons.length || !searchInput || !cardGrid || !modalBackdrop || !modalClose || !paymentForm) return;
+  if (!viewButtons.length || !searchInput || !slipSearchInput || !cardGrid || !modalBackdrop || !modalClose || !paymentForm) return;
 
   const detailRefs = {
     type: document.getElementById("paymentDetailType"),
@@ -2084,10 +2584,27 @@ function initializePaymentsModule() {
     document.body.classList.toggle("payments-modal-open", open);
   }
 
+  function syncPaymentAccountField(order) {
+    const supplierAccounts = order?.supplierAccountNumbers || [];
+    const isSupplier = activeView === "suppliers" && supplierAccounts.length > 0;
+
+    paymentEntrySupplierAccountWrap?.classList.toggle("hidden", !isSupplier);
+    paymentEntryBankAccountWrap?.classList.toggle("hidden", isSupplier);
+
+    if (paymentEntrySupplierAccount) {
+      paymentEntrySupplierAccount.required = isSupplier;
+      renderSupplierAccountOptions(supplierAccounts);
+    }
+    if (paymentEntryBankAccount) {
+      paymentEntryBankAccount.required = !isSupplier;
+    }
+  }
+
   function closeModal() {
     toggleModal(false);
     selectedPartyName = null;
     currentPaymentDetail = null;
+    syncPaymentAccountField(null);
   }
 
   function renderModal(order) {
@@ -2168,6 +2685,7 @@ function initializePaymentsModule() {
       query: {
         partyView: activeView,
         search: searchInput.value.trim(),
+        slipId: slipSearchInput.value.trim(),
       },
     });
     const items = (response.items || []).map(normalizePaymentListItem);
@@ -2185,6 +2703,7 @@ function initializePaymentsModule() {
       });
       currentPaymentDetail = normalizePaymentDetail(detail);
       renderModal(currentPaymentDetail);
+      syncPaymentAccountField(currentPaymentDetail);
       document.getElementById("paymentEntryDate").value = getLocalDateString();
       toggleModal(true);
     } catch (error) {
@@ -2265,6 +2784,10 @@ function initializePaymentsModule() {
     closeModal();
     renderCards();
   });
+  slipSearchInput.addEventListener("input", () => {
+    closeModal();
+    renderCards();
+  });
 
   modalClose.addEventListener("click", closeModal);
   modalBackdrop.addEventListener("click", (event) => {
@@ -2279,7 +2802,9 @@ function initializePaymentsModule() {
 
     const date = document.getElementById("paymentEntryDate").value;
     const amount = parseNumber(document.getElementById("paymentEntryAmount").value);
-    const bankAccount = document.getElementById("paymentEntryBankAccount").value.trim();
+    const bankAccount = (activeView === "suppliers" && paymentEntrySupplierAccountWrap && !paymentEntrySupplierAccountWrap.classList.contains("hidden")
+      ? paymentEntrySupplierAccount.value
+      : document.getElementById("paymentEntryBankAccount").value.trim());
     const mode = document.getElementById("paymentEntryMode").value;
     const reference = document.getElementById("paymentEntryReference").value.trim();
     const remark = document.getElementById("paymentEntryRemark").value.trim();
@@ -2305,6 +2830,7 @@ function initializePaymentsModule() {
       document.getElementById("paymentEntryDate").value = getLocalDateString();
       await Promise.all([renderCards(), loadDashboardData()]);
       renderModal(currentPaymentDetail);
+      syncPaymentAccountField(currentPaymentDetail);
     } catch (error) {
       notifyError(error);
     }
@@ -2318,12 +2844,17 @@ window.addEventListener("afterprint", () => {
   viewPanels.forEach((panel) => panel.classList.remove("print-active"));
 });
 
+initializeSearchableSelects();
 initializeSettingsModule();
+initializeAccountSettings();
 initializeReportsModule();
 initializePaymentsModule();
+initializeAuthModule();
 activateView("dashboard");
+setBackendStatus("loading");
 
-(async function initializeAppData() {
+async function initializeAppData() {
+  setBackendStatus("loading");
   try {
     await Promise.all([
       loadSettingsData(),
@@ -2333,7 +2864,15 @@ activateView("dashboard");
     if (typeof window.refreshPaymentsView === "function") {
       await window.refreshPaymentsView();
     }
+    setBackendStatus("connected");
   } catch (error) {
+    setBackendStatus("disconnected", error.message || "Backend is not reachable.");
     notifyError(error);
   }
-})();
+}
+
+backendRetryButton?.addEventListener("click", () => {
+  bootstrapSession();
+});
+
+bootstrapSession();
