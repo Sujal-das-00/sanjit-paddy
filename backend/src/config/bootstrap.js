@@ -95,6 +95,22 @@ async function ensurePaymentAllocationsTable(connection) {
   `);
 }
 
+async function ensureSupplierAccountNumbersTable(connection) {
+  await connection.execute(`
+    CREATE TABLE IF NOT EXISTS supplier_account_numbers (
+      id BIGINT PRIMARY KEY AUTO_INCREMENT,
+      supplier_id BIGINT NOT NULL,
+      account_number VARCHAR(160) NOT NULL,
+      is_active TINYINT(1) NOT NULL DEFAULT 1,
+      created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+      KEY idx_supplier_account_numbers_supplier (supplier_id),
+      UNIQUE KEY uniq_supplier_account_number (supplier_id, account_number),
+      CONSTRAINT fk_supplier_account_numbers_supplier FOREIGN KEY (supplier_id) REFERENCES suppliers(id) ON DELETE CASCADE
+    )
+  `);
+}
+
 async function backfillPartyFields(connection) {
   await connection.execute(`
     UPDATE payments p
@@ -139,18 +155,47 @@ async function recreateSlipPaymentSummaryView(connection) {
   `);
 }
 
+
+async function ensureUsersTable(connection) {
+  await connection.execute(`
+    CREATE TABLE IF NOT EXISTS users (
+      id BIGINT PRIMARY KEY AUTO_INCREMENT,
+      username VARCHAR(60) NOT NULL UNIQUE,
+      password_hash VARCHAR(255) NOT NULL,
+      password_salt VARCHAR(64) NOT NULL,
+      created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+    )
+  `);
+
+  await connection.execute(`
+    INSERT INTO users (username, password_hash, password_salt)
+    SELECT 'admin', 'a9f64d7e0c2a4e719871de46c4d73f6684728ccf42cfe2db7b6a767415c571808b3e4631d24f082f5c579b7e6b2a9e28bae7bd3733b8ff521040fda18ec8726a', '9b5d7e3a1c4f6a8b'
+    WHERE NOT EXISTS (SELECT 1 FROM users WHERE username = 'admin')
+  `);
+}
+
 async function ensurePaymentSchema() {
   const connection = await pool.getConnection();
 
   try {
     const hasPayments = await hasTable(connection, 'payments');
     const hasSlips = await hasTable(connection, 'slips');
+    const hasSuppliers = await hasTable(connection, 'suppliers');
+
+    await connection.beginTransaction();
+
+    if (hasSuppliers) {
+      await ensureSupplierAccountNumbersTable(connection);
+    }
+
+    await ensureUsersTable(connection);
 
     if (!hasPayments || !hasSlips) {
+      await connection.commit();
       return;
     }
 
-    await connection.beginTransaction();
     await ensurePaymentsTableShape(connection);
     await ensurePaymentAllocationsTable(connection);
     await backfillPartyFields(connection);

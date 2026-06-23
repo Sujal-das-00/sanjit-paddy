@@ -16,6 +16,15 @@ async function createRiceType(payload) {
   return settingsModel.createRiceType(payload);
 }
 
+async function updateRiceType(id, payload) {
+  requireName(payload, 'Rice type');
+  return settingsModel.updateRiceType(id, payload);
+}
+
+async function deleteRiceType(id) {
+  return settingsModel.deleteRiceType(id);
+}
+
 async function listFarmers() {
   return settingsModel.listFarmers();
 }
@@ -31,7 +40,18 @@ async function listSuppliers() {
 
 async function createSupplier(payload) {
   requireName(payload, 'Supplier');
+  payload.accountNumbers = Array.isArray(payload.accountNumbers) ? payload.accountNumbers : [];
   return settingsModel.createSupplier(payload);
+}
+
+async function updateSupplier(id, payload) {
+  requireName(payload, 'Supplier');
+  payload.accountNumbers = Array.isArray(payload.accountNumbers) ? payload.accountNumbers : [];
+  return settingsModel.updateSupplier(id, payload);
+}
+
+async function deleteSupplier(id) {
+  return settingsModel.deleteSupplier(id);
 }
 
 async function listDrivers() {
@@ -43,6 +63,15 @@ async function createDriver(payload) {
   return settingsModel.createDriver(payload);
 }
 
+async function updateDriver(id, payload) {
+  requireName(payload, 'Driver');
+  return settingsModel.updateDriver(id, payload);
+}
+
+async function deleteDriver(id) {
+  return settingsModel.deleteDriver(id);
+}
+
 async function listCompanies() {
   return settingsModel.listCompanies();
 }
@@ -52,15 +81,45 @@ async function createCompany(payload) {
   return settingsModel.createCompany(payload);
 }
 
+async function updateCompany(id, payload) {
+  requireName(payload, 'Company');
+  return settingsModel.updateCompany(id, payload);
+}
+
+async function deleteCompany(id) {
+  return settingsModel.deleteCompany(id);
+}
+
 module.exports = {
   listRiceTypes,
   createRiceType,
+  updateRiceType,
+  deleteRiceType,
   listFarmers,
   createFarmer,
   listSuppliers,
   createSupplier,
+  updateSupplier,
+  deleteSupplier,
   listDrivers,
   createDriver,
+  updateDriver,
+  deleteDriver,
   listCompanies,
   createCompany,
+  updateCompany,
+  deleteCompany,
 };
+
+async function changePassword(payload, userId) {
+  const authService = require('./authService');
+  if (!String(payload.currentPassword || '').trim()) {
+    throw new (require('../utils/AppError').AppError)('Current password is required', 400);
+  }
+  if (String(payload.newPassword || '').trim().length < 4) {
+    throw new (require('../utils/AppError').AppError)('New password must be at least 4 characters', 400);
+  }
+  return authService.changePassword(userId, payload.currentPassword, payload.newPassword);
+}
+
+module.exports.changePassword = changePassword;

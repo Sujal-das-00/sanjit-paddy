@@ -20,3 +20,21 @@ Node.js + Express backend for the paddy management app using MVC architecture an
 
 ## Entry Point
 - `src/server.js`
+
+```bash
+node -e "
+const authService = require('./src/services/authService');
+const authModel = require('./src/models/authModel');
+(async () => {
+  const password = process.argv[1];
+  const salt = authService.createPasswordSalt();
+  const hash = authService.hashPassword(password, salt);
+  const user = await authModel.getUserByUsername('admin');
+  await authModel.updatePassword(user.id, hash, salt);
+  console.log('Password updated for admin.');
+  process.exit(0);
+})();
+" "YourNewPassword123"
+node scripts/createUser.js <username> <password>
+
+```

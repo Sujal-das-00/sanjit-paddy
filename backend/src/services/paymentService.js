@@ -1,5 +1,6 @@
 const paymentModel = require('../models/paymentModel');
 const paymentLedgerModel = require('../models/paymentLedgerModel');
+const settingsModel = require('../models/settingsModel');
 const { AppError } = require('../utils/AppError');
 const { toNumber } = require('../utils/number');
 
@@ -23,6 +24,10 @@ async function getPaymentOrder(filters) {
   const record = await paymentModel.getPaymentOrder(filters);
   if (!record || !record.orderCount) {
     throw new AppError('Payment record not found', 404);
+  }
+
+  if (filters.partyView === 'suppliers') {
+    record.supplierAccountNumbers = await settingsModel.listSupplierAccountNumbersByName(filters.partyName);
   }
 
   return record;
@@ -55,6 +60,13 @@ async function createPayment(payload) {
 
   if (toNumber(payload.amount) <= 0) {
     throw new AppError('Payment amount must be greater than zero', 400);
+  }
+
+  if (payload.partyView === 'suppliers') {
+    const validAccounts = await settingsModel.listSupplierAccountNumbersByName(String(payload.partyName).trim());
+    if (validAccounts.length && !validAccounts.includes(String(payload.bankAccount).trim())) {
+      throw new AppError('Select a valid supplier account number', 400);
+    }
   }
 
   const existingReference = await paymentLedgerModel.findPaymentByReferenceCode(

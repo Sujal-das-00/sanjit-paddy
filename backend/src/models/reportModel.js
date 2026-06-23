@@ -33,6 +33,11 @@ function buildReportWhere(filters = {}) {
     params.push(filters.dateTo);
   }
 
+  if (filters.slipId) {
+    clauses.push('s.id = ?');
+    params.push(filters.slipId);
+  }
+
   if (filters.search) {
     clauses.push(`(
       s.slip_number LIKE ? OR
@@ -170,7 +175,7 @@ async function getPartyPurchaseRows(filters) {
         COALESCE(v.balance_amount, 0) AS outstanding,
         s.purchase_total - s.loading_discount AS reportAmount,
         GROUP_CONCAT(
-          CONCAT(si.rice_type_name_snapshot, ': ', si.bag_count, ' bags / ', si.total_weight, 'kg @ Rs', si.rate_per_kg, '/kg')
+          CONCAT(si.rice_type_name_snapshot, ': ', si.bag_count, ' bags / ', si.total_weight, 'kg @ Rs', si.rate_per_kg, '/1000kg')
           SEPARATOR '; '
         ) AS itemSummary
       FROM slips s

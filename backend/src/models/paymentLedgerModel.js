@@ -152,6 +152,11 @@ async function listPartyLedgers(filters = {}) {
   const params = [moduleType];
   const searchClauses = ['s.module_type = ?'];
 
+  if (filters.slipId) {
+    searchClauses.push('s.id = ?');
+    params.push(filters.slipId);
+  }
+
   if (filters.search) {
     const like = `%${filters.search}%`;
     searchClauses.push(`(
