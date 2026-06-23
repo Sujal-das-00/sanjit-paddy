@@ -1,9 +1,9 @@
 const { createApp } = require('./app');
 const { env } = require('./config/env');
-const { ensurePaymentSchema } = require('./config/bootstrap');
+// const { ensurePaymentSchema } = require('./config/bootstrap');
 
 async function startServer() {
-  await ensurePaymentSchema();
+  // await ensurePaymentSchema();
   const app = createApp();
 
   app.listen(env.port, () => {
