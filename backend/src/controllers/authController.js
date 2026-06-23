@@ -15,16 +15,33 @@ function createAuthToken(user) {
 }
 
 function setAuthCookie(res, user) {
-  res.cookie(env.authCookieName, createAuthToken(user), {
+  const cookieOptions = {
     httpOnly: true,
-    sameSite: 'lax',
-    secure: env.isProduction,
+    sameSite: env.authCookieSameSite,
+    secure: env.authCookieSecure,
     maxAge: env.authCookieMaxAgeMs,
-  });
+  };
+
+  if (env.authCookieDomain) {
+    cookieOptions.domain = env.authCookieDomain;
+  }
+
+  res.cookie(env.authCookieName, createAuthToken(user), cookieOptions);
 }
 
 function clearAuthCookie(res) {
-  res.clearCookie(env.authCookieName);
+  const cookieOptions = {};
+  if (env.authCookieDomain) {
+    cookieOptions.domain = env.authCookieDomain;
+  }
+  if (env.authCookieSameSite) {
+    cookieOptions.sameSite = env.authCookieSameSite;
+  }
+  if (env.authCookieSecure !== undefined) {
+    cookieOptions.secure = env.authCookieSecure;
+  }
+
+  res.clearCookie(env.authCookieName, cookieOptions);
 }
 
 exports.login = asyncHandler(async (req, res) => {

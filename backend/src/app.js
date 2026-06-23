@@ -9,10 +9,32 @@ const { notFoundHandler, errorHandler } = require('./middleware/errorMiddleware'
 
 const FRONTEND_DIR = path.join(__dirname, '../../');
 
+function resolveCorsOrigin(origin) {
+  if (!origin) return true;
+  if (env.corsOrigins.length > 0) {
+    return env.corsOrigins.includes(origin);
+  }
+  if (env.corsOrigin === '*') {
+    return true;
+  }
+  return origin === env.corsOrigin;
+}
+
 function createApp() {
   const app = express();
 
-  app.use(cors({ origin: env.corsOrigin === '*' ? true : env.corsOrigin, credentials: true }));
+  app.use(
+    cors({
+      origin(origin, callback) {
+        if (resolveCorsOrigin(origin)) {
+          callback(null, true);
+          return;
+        }
+        callback(new Error('CORS origin not allowed'));
+      },
+      credentials: true,
+    })
+  );
   app.use(cookieParser());
   app.use(express.json({ limit: '2mb' }));
   app.use(express.urlencoded({ extended: true }));
