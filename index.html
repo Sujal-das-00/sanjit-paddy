@@ -244,8 +244,8 @@
                       </label>
 
                       <label class="field">
-                        <span>Moisture Deduction (Kg)</span>
-                        <input type="number" id="godownMoistureDeduction" min="0" step="0.01" placeholder="0.00" />
+                        <span>Moisture Deduction (Auto)</span>
+                        <input type="text" id="godownMoistureDeduction" readonly />
                       </label>
 
                       <label class="field">
@@ -289,7 +289,10 @@
                             <th>Paddy Type</th>
                             <th>No. of Bags</th>
                             <th>Rate / 1000 Kg</th>
-                            <th>Weight</th>
+                            <th>Paddy Weight</th>
+                            <th>Moisture / 1000 Kg</th>
+                            <th>Moisture Deduction</th>
+                            <th>Net Weight</th>
                             <th>Amount</th>
                             <th></th>
                           </tr>
@@ -407,8 +410,11 @@
                         <tr>
                           <th>Paddy Type</th>
                           <th>Bags</th>
+                          <th>Paddy Weight</th>
+                          <th>Moisture / 1000 Kg</th>
+                          <th>Moisture Deduction</th>
+                          <th>Net Weight</th>
                           <th>Rate / 1000 Kg</th>
-                          <th>Weight</th>
                           <th>Amount</th>
                         </tr>
                       </thead>
@@ -497,7 +503,10 @@
                             <th>Paddy Type</th>
                             <th>No. of Bags</th>
                             <th>Weight / Bag</th>
-                            <th>Total Weight</th>
+                            <th>Paddy Weight</th>
+                            <th>Moisture / 1000 Kg</th>
+                            <th>Moisture Deduction</th>
+                            <th>Net Weight</th>
                             <th>Rate / 1000 Kg</th>
                             <th>Amount</th>
                             <th></th>
@@ -517,6 +526,9 @@
                             <td><input class="entry-bags" type="number" min="0" step="1" placeholder="0" /></td>
                             <td><input class="entry-weight-per-bag" type="number" min="0" step="0.01" placeholder="0.00" /></td>
                             <td><input class="entry-weight" type="text" readonly value="0.00 Kg" /></td>
+                            <td><input class="entry-moisture-per-1000" type="number" min="0" step="0.01" placeholder="0.00" /></td>
+                            <td><input class="entry-moisture-deduction" type="text" readonly value="0.00 Kg" /></td>
+                            <td><input class="entry-net-weight" type="text" readonly value="0.00 Kg" /></td>
                             <td><input class="entry-rate" type="number" min="0" step="0.01" placeholder="0.00" /></td>
                             <td><input class="entry-amount" type="text" readonly value="Rs 0.00" /></td>
                             <td><button class="icon-btn delete-row-btn" type="button" aria-label="Delete row">&#10005;</button></td>
@@ -576,6 +588,7 @@
                   <div class="summary-list">
                     <div class="summary-row"><span>Vehicle Number</span><strong id="homeSummaryVehicle">-</strong></div>
                     <div class="summary-row"><span>Total Bags</span><strong id="homeSummaryTotalBags">0</strong></div>
+                    <div class="summary-row"><span>Moisture Deduction</span><strong id="homeSummaryMoistureDeduction">0.00 Kg</strong></div>
                     <div class="summary-row"><span>Total Weight</span><strong id="homeSummaryTotalWeight">0.00 Kg</strong></div>
                     <div class="summary-row"><span>Purchase Amount</span><strong id="homeSummaryPurchaseTotal">Rs 0.00</strong></div>
                     <div class="summary-row"><span>Advance</span><strong id="homeSummaryAdvance">Rs 0.00</strong></div>
@@ -599,6 +612,7 @@
                       <div><span>Driver Name</span><strong id="homePrintDriver">-</strong></div>
                       <div><span>Vehicle Number</span><strong id="homePrintVehicle">-</strong></div>
                       <div><span>Total Bags</span><strong id="homePrintTotalBags">0</strong></div>
+                      <div><span>Moisture Deduction</span><strong id="homePrintMoistureDeduction">0.00 Kg</strong></div>
                       <div><span>Total Weight</span><strong id="homePrintTotalWeight">0.00 Kg</strong></div>
                       <div><span>Advance</span><strong id="homePrintAdvance">Rs 0.00</strong></div>
                     </div>
@@ -608,7 +622,10 @@
                           <th>Paddy Type</th>
                           <th>Bags</th>
                           <th>Weight / Bag</th>
-                          <th>Total Weight</th>
+                          <th>Paddy Weight</th>
+                          <th>Moisture / 1000 Kg</th>
+                          <th>Moisture Deduction</th>
+                          <th>Net Weight</th>
                           <th>Rate / 1000 Kg</th>
                           <th>Amount</th>
                         </tr>
@@ -708,8 +725,8 @@
                       </label>
 
                       <label class="field">
-                        <span>Moisture Deduction (Kg)</span>
-                        <input type="number" id="sellingMoistureDeduction" min="0" step="0.01" placeholder="0.00" />
+                        <span>Moisture Deduction (Auto)</span>
+                        <input type="text" id="sellingMoistureDeduction" readonly />
                       </label>
 
                       <label class="field">
@@ -753,7 +770,10 @@
                             <th>Paddy Type</th>
                             <th>No. of Bags</th>
                             <th>Rate / 1000 Kg</th>
-                            <th>Weight</th>
+                            <th>Paddy Weight</th>
+                            <th>Moisture / 1000 Kg</th>
+                            <th>Moisture Deduction</th>
+                            <th>Net Weight</th>
                             <th>Amount</th>
                             <th></th>
                           </tr>
@@ -871,8 +891,11 @@
                         <tr>
                           <th>Paddy Type</th>
                           <th>Bags</th>
+                          <th>Paddy Weight</th>
+                          <th>Moisture / 1000 Kg</th>
+                          <th>Moisture Deduction</th>
+                          <th>Net Weight</th>
                           <th>Rate / 1000 Kg</th>
-                          <th>Weight</th>
                           <th>Amount</th>
                         </tr>
                       </thead>
@@ -1005,7 +1028,9 @@
                           <tr>
                             <th>Material</th>
                             <th>Bags</th>
-                            <th>Weight</th>
+                            <th>Paddy Weight</th>
+                            <th>Moisture</th>
+                            <th>Net Weight</th>
                             <th>Rate / 1000 Kg</th>
                             <th class="tally-amount-col">Amount</th>
                           </tr>
@@ -1013,7 +1038,7 @@
                         <tbody id="reportItemsList"></tbody>
                         <tfoot>
                           <tr class="tally-total-row">
-                            <td colspan="4">Total Amount</td>
+                            <td colspan="6">Total Amount</td>
                             <td class="tally-amount-col" id="reportItemsTotal">Rs 0.00</td>
                           </tr>
                         </tfoot>
@@ -1060,7 +1085,9 @@
                     <tr>
                       <th>Material</th>
                       <th>Bags</th>
-                      <th>Weight</th>
+                      <th>Paddy Weight</th>
+                      <th>Moisture</th>
+                      <th>Net Weight</th>
                       <th>Rate / 1000 Kg</th>
                       <th>Amount</th>
                     </tr>
@@ -1504,6 +1531,9 @@
         <td><input class="entry-bags" type="number" min="0" step="1" placeholder="0" /></td>
         <td><input class="entry-rate" type="number" min="0" step="0.01" placeholder="0.00" /></td>
         <td><input class="entry-weight" type="text" readonly value="0.00 Kg" /></td>
+        <td><input class="entry-moisture-per-1000" type="number" min="0" step="0.01" placeholder="0.00" /></td>
+        <td><input class="entry-moisture-deduction" type="text" readonly value="0.00 Kg" /></td>
+        <td><input class="entry-net-weight" type="text" readonly value="0.00 Kg" /></td>
         <td><input class="entry-amount" type="text" readonly value="Rs 0.00" /></td>
         <td>
           <button class="icon-btn delete-row-btn" type="button" aria-label="Delete row">&#10005;</button>
@@ -1525,6 +1555,9 @@
         <td><input class="entry-bags" type="number" min="0" step="1" placeholder="0" /></td>
         <td><input class="entry-weight-per-bag" type="number" min="0" step="0.01" placeholder="0.00" /></td>
         <td><input class="entry-weight" type="text" readonly value="0.00 Kg" /></td>
+        <td><input class="entry-moisture-per-1000" type="number" min="0" step="0.01" placeholder="0.00" /></td>
+        <td><input class="entry-moisture-deduction" type="text" readonly value="0.00 Kg" /></td>
+        <td><input class="entry-net-weight" type="text" readonly value="0.00 Kg" /></td>
         <td><input class="entry-rate" type="number" min="0" step="0.01" placeholder="0.00" /></td>
         <td><input class="entry-amount" type="text" readonly value="Rs 0.00" /></td>
         <td>

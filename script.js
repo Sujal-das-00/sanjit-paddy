@@ -504,14 +504,23 @@ function normalizeReportListItem(item) {
 
 function normalizeSlipDetail(item) {
   const moduleKey = item.module_type || item.moduleType;
-  const entries = (item.items || []).map((entry) => ({
-    type: entry.rice_type_name_snapshot || entry.riceTypeNameSnapshot || "-",
-    bags: parseNumber(entry.bag_count || entry.bagCount),
-    weightPerBag: parseNumber(entry.weight_per_bag || entry.weightPerBag),
-    weight: parseNumber(entry.total_weight || entry.totalWeight),
-    rate: parseNumber(entry.rate_per_kg || entry.ratePerKg),
-    amount: parseNumber(entry.total_amount || entry.totalAmount),
-  }));
+  const entries = (item.items || []).map((entry) => {
+    const weight = parseNumber(entry.total_weight || entry.totalWeight);
+    const moistureDeduction = parseNumber(entry.moisture_deduction || entry.moistureDeduction);
+    const netWeight = parseNumber(entry.net_weight || entry.netWeight || Math.max(0, weight - moistureDeduction));
+
+    return {
+      type: entry.rice_type_name_snapshot || entry.riceTypeNameSnapshot || "-",
+      bags: parseNumber(entry.bag_count || entry.bagCount),
+      weightPerBag: parseNumber(entry.weight_per_bag || entry.weightPerBag),
+      weight,
+      moisturePer1000: parseNumber(entry.moisture_per_1000 || entry.moisturePer1000),
+      moistureDeduction,
+      netWeight,
+      rate: parseNumber(entry.rate_per_kg || entry.ratePerKg),
+      amount: parseNumber(entry.total_amount || entry.totalAmount),
+    };
+  });
 
   const normalized = {
     id: item.id,
@@ -766,6 +775,30 @@ function buildTypeOptions() {
   return `<option value="">Select type</option>${paddyTypes
     .map((type) => `<option>${type}</option>`)
     .join("")}<option value="__other__">Others</option>`;
+}
+
+function calculateMoistureAdjustedWeight(weight, moisturePer1000) {
+  const grossEntryWeight = Math.max(0, parseNumber(weight));
+  const moistureRate = Math.max(0, parseNumber(moisturePer1000));
+  const moistureDeduction = (grossEntryWeight / 1000) * moistureRate;
+  const netWeight = Math.max(0, grossEntryWeight - moistureDeduction);
+
+  return {
+    grossEntryWeight,
+    moisturePer1000: moistureRate,
+    moistureDeduction,
+    netWeight,
+  };
+}
+
+function writeMoistureAdjustedRow(row, result) {
+  row.querySelector(".entry-weight").value = formatKg(result.grossEntryWeight);
+  row.querySelector(".entry-moisture-deduction").value = formatKg(result.moistureDeduction);
+  row.querySelector(".entry-net-weight").value = formatKg(result.netWeight);
+}
+
+function sumEntryMoistureDeduction(entries) {
+  return entries.reduce((sum, entry) => sum + parseNumber(entry.moistureDeduction), 0);
 }
 
 document.addEventListener("click", (event) => {
@@ -1033,7 +1066,11 @@ function createPurchaseModule(config) {
   function collectData() {
     const prepared = config.prepareFields ? config.prepareFields(module.fields) : {};
     const entries = getEntryData();
-    return config.collectData(module.fields, entries, prepared);
+    const data = config.collectData(module.fields, entries, prepared);
+    if (module.fields.moistureDeduction && data.moistureDeduction !== undefined) {
+      module.fields.moistureDeduction.value = formatKg(data.moistureDeduction);
+    }
+    return data;
   }
 
   function recalculate() {
@@ -1235,7 +1272,7 @@ createPurchaseModule({
   templateId: "godownRowTemplate",
   printEntriesBodyId: "godownPrintEntriesBody",
   requiredField: "slipNumber",
-  printColumnCount: 5,
+  printColumnCount: 8,
   fields: {
     entryDate: "godownEntryDate",
     slipNumber: "godownSlipNumber",
@@ -1324,19 +1361,19 @@ createPurchaseModule({
   prepareFields(fields) {
     const grossWeight = parseNumber(fields.grossWeight.value);
     const dustDeduction = parseNumber(fields.dustDeduction.value);
-    const moistureDeduction = parseNumber(fields.moistureDeduction.value);
     const totalBags = Math.max(0, Math.trunc(parseNumber(fields.totalBags.value)));
-    const finalWeight = Math.max(0, grossWeight - dustDeduction - moistureDeduction);
+    const finalWeight = Math.max(0, grossWeight - dustDeduction);
     const averageWeight = totalBags > 0 ? finalWeight / totalBags : 0;
 
     fields.finalWeight.value = formatKg(finalWeight);
     fields.averageWeight.value = formatKg(averageWeight);
     fields.averageWeight.dataset.value = String(averageWeight);
+    fields.moistureDeduction.value = formatKg(0);
 
     return {
       grossWeight,
       dustDeduction,
-      moistureDeduction,
+      moistureDeduction: 0,
       totalBags,
       finalWeight,
       averageWeight,
@@ -1346,12 +1383,13 @@ createPurchaseModule({
     const averageWeight = parseNumber(fields.averageWeight.dataset.value);
     const bags = parseNumber(row.querySelector(".entry-bags").value);
     const rate = parseNumber(row.querySelector(".entry-rate").value);
+    const moisturePer1000 = parseNumber(row.querySelector(".entry-moisture-per-1000").value);
     const type = getEntryTypeValue(row);
-    const weight = averageWeight * bags;
-    const amount = (weight / 1000) * rate;
+    const result = calculateMoistureAdjustedWeight(averageWeight * bags, moisturePer1000);
+    const amount = (result.netWeight / 1000) * rate;
 
     if (shouldWrite) {
-      row.querySelector(".entry-weight").value = formatKg(weight);
+      writeMoistureAdjustedRow(row, result);
       row.querySelector(".entry-amount").value = formatMoney(amount);
     }
 
@@ -1359,9 +1397,12 @@ createPurchaseModule({
       type: type || "-",
       bags,
       rate,
-      weight,
+      weight: result.grossEntryWeight,
+      moisturePer1000: result.moisturePer1000,
+      moistureDeduction: result.moistureDeduction,
+      netWeight: result.netWeight,
       amount,
-      isMeaningful: Boolean(type) || bags > 0 || rate > 0,
+      isMeaningful: Boolean(type) || bags > 0 || rate > 0 || moisturePer1000 > 0,
     };
   },
   renderPrintRow(entry) {
@@ -1369,8 +1410,11 @@ createPurchaseModule({
       <tr>
         <td>${entry.type}</td>
         <td>${entry.bags}</td>
-        <td>${formatMoney(entry.rate)}</td>
         <td>${formatKg(entry.weight)}</td>
+        <td>${formatKg(entry.moisturePer1000)}</td>
+        <td>${formatKg(entry.moistureDeduction)}</td>
+        <td>${formatKg(entry.netWeight)}</td>
+        <td>${formatMoney(entry.rate)}</td>
         <td>${formatMoney(entry.amount)}</td>
       </tr>
     `;
@@ -1380,7 +1424,8 @@ createPurchaseModule({
   },
   collectData(fields, entries, prepared) {
     const purchaseTotal = entries.reduce((sum, entry) => sum + entry.amount, 0);
-    const netWeight = prepared.finalWeight;
+    const moistureDeduction = sumEntryMoistureDeduction(entries);
+    const netWeight = Math.max(0, prepared.finalWeight - moistureDeduction);
     const loadingDiscount = parseNumber(fields.loadingDiscount.value);
     const advancePayment = parseNumber(fields.advancePayment.value);
     const finalPayable = purchaseTotal - loadingDiscount - advancePayment;
@@ -1397,7 +1442,7 @@ createPurchaseModule({
       totalBags: prepared.totalBags,
       averageWeight: prepared.averageWeight,
       entries,
-      moistureDeduction: prepared.moistureDeduction,
+      moistureDeduction,
       moistureNote: fields.moistureNote.value.trim(),
       netWeight,
       purchaseTotal,
@@ -1409,7 +1454,7 @@ createPurchaseModule({
   resetDefaults(fields) {
     fields.entryDate.value = getLocalDateString();
     fields.dustDeduction.value = "";
-    fields.moistureDeduction.value = "";
+    fields.moistureDeduction.value = formatKg(0);
     fields.loadingDiscount.value = "";
     fields.advancePayment.value = "";
     fields.finalWeight.value = formatKg(0);
@@ -1426,7 +1471,7 @@ createPurchaseModule({
   templateId: "godownRowTemplate",
   printEntriesBodyId: "sellingPrintEntriesBody",
   requiredField: "slipNumber",
-  printColumnCount: 5,
+  printColumnCount: 8,
   fields: {
     entryDate: "sellingEntryDate",
     slipNumber: "sellingSlipNumber",
@@ -1515,19 +1560,19 @@ createPurchaseModule({
   prepareFields(fields) {
     const grossWeight = parseNumber(fields.grossWeight.value);
     const dustDeduction = parseNumber(fields.dustDeduction.value);
-    const moistureDeduction = parseNumber(fields.moistureDeduction.value);
     const totalBags = Math.max(0, Math.trunc(parseNumber(fields.totalBags.value)));
-    const finalWeight = Math.max(0, grossWeight - dustDeduction - moistureDeduction);
+    const finalWeight = Math.max(0, grossWeight - dustDeduction);
     const averageWeight = totalBags > 0 ? finalWeight / totalBags : 0;
 
     fields.finalWeight.value = formatKg(finalWeight);
     fields.averageWeight.value = formatKg(averageWeight);
     fields.averageWeight.dataset.value = String(averageWeight);
+    fields.moistureDeduction.value = formatKg(0);
 
     return {
       grossWeight,
       dustDeduction,
-      moistureDeduction,
+      moistureDeduction: 0,
       totalBags,
       finalWeight,
       averageWeight,
@@ -1537,12 +1582,13 @@ createPurchaseModule({
     const averageWeight = parseNumber(fields.averageWeight.dataset.value);
     const bags = parseNumber(row.querySelector(".entry-bags").value);
     const rate = parseNumber(row.querySelector(".entry-rate").value);
+    const moisturePer1000 = parseNumber(row.querySelector(".entry-moisture-per-1000").value);
     const type = getEntryTypeValue(row);
-    const weight = averageWeight * bags;
-    const amount = (weight / 1000) * rate;
+    const result = calculateMoistureAdjustedWeight(averageWeight * bags, moisturePer1000);
+    const amount = (result.netWeight / 1000) * rate;
 
     if (shouldWrite) {
-      row.querySelector(".entry-weight").value = formatKg(weight);
+      writeMoistureAdjustedRow(row, result);
       row.querySelector(".entry-amount").value = formatMoney(amount);
     }
 
@@ -1550,9 +1596,12 @@ createPurchaseModule({
       type: type || "-",
       bags,
       rate,
-      weight,
+      weight: result.grossEntryWeight,
+      moisturePer1000: result.moisturePer1000,
+      moistureDeduction: result.moistureDeduction,
+      netWeight: result.netWeight,
       amount,
-      isMeaningful: Boolean(type) || bags > 0 || rate > 0,
+      isMeaningful: Boolean(type) || bags > 0 || rate > 0 || moisturePer1000 > 0,
     };
   },
   renderPrintRow(entry) {
@@ -1560,8 +1609,11 @@ createPurchaseModule({
       <tr>
         <td>${entry.type}</td>
         <td>${entry.bags}</td>
-        <td>${formatMoney(entry.rate)}</td>
         <td>${formatKg(entry.weight)}</td>
+        <td>${formatKg(entry.moisturePer1000)}</td>
+        <td>${formatKg(entry.moistureDeduction)}</td>
+        <td>${formatKg(entry.netWeight)}</td>
+        <td>${formatMoney(entry.rate)}</td>
         <td>${formatMoney(entry.amount)}</td>
       </tr>
     `;
@@ -1571,7 +1623,8 @@ createPurchaseModule({
   },
   collectData(fields, entries, prepared) {
     const purchaseTotal = entries.reduce((sum, entry) => sum + entry.amount, 0);
-    const netWeight = prepared.finalWeight;
+    const moistureDeduction = sumEntryMoistureDeduction(entries);
+    const netWeight = Math.max(0, prepared.finalWeight - moistureDeduction);
     const loadingDiscount = parseNumber(fields.loadingDiscount.value);
     const advancePayment = parseNumber(fields.advancePayment.value);
     const finalPayable = purchaseTotal - loadingDiscount - advancePayment;
@@ -1588,7 +1641,7 @@ createPurchaseModule({
       totalBags: prepared.totalBags,
       averageWeight: prepared.averageWeight,
       entries,
-      moistureDeduction: prepared.moistureDeduction,
+      moistureDeduction,
       moistureNote: fields.moistureNote.value.trim(),
       netWeight,
       purchaseTotal,
@@ -1600,7 +1653,7 @@ createPurchaseModule({
   resetDefaults(fields) {
     fields.entryDate.value = getLocalDateString();
     fields.dustDeduction.value = "";
-    fields.moistureDeduction.value = "";
+    fields.moistureDeduction.value = formatKg(0);
     fields.loadingDiscount.value = "";
     fields.advancePayment.value = "";
     fields.finalWeight.value = formatKg(0);
@@ -1617,7 +1670,7 @@ createPurchaseModule({
   templateId: "homeRowTemplate",
   printEntriesBodyId: "homePrintEntriesBody",
   requiredField: "slipNumber",
-  printColumnCount: 6,
+  printColumnCount: 9,
   fields: {
     entryDate: "homeEntryDate",
     slipNumber: "homeSlipNumber",
@@ -1634,6 +1687,7 @@ createPurchaseModule({
     vehicle: "homeSummaryVehicle",
     totalBags: "homeSummaryTotalBags",
     totalWeight: "homeSummaryTotalWeight",
+    moistureDeduction: "homeSummaryMoistureDeduction",
     purchaseTotal: "homeSummaryPurchaseTotal",
     advance: "homeSummaryAdvance",
     finalPayable: "homeSummaryFinalPayable",
@@ -1647,6 +1701,7 @@ createPurchaseModule({
     vehicle: "homePrintVehicle",
     totalBags: "homePrintTotalBags",
     totalWeight: "homePrintTotalWeight",
+    moistureDeduction: "homePrintMoistureDeduction",
     advance: "homePrintAdvance",
     purchaseTotal: "homePrintPurchaseTotal",
     advanceTotal: "homePrintAdvanceTotal",
@@ -1660,6 +1715,7 @@ createPurchaseModule({
     { target: "vehicle", value: (data) => data.vehicleNumber || "-" },
     { target: "totalBags", value: (data) => String(data.totalBags) },
     { target: "totalWeight", value: "totalWeight", formatter: formatKg },
+    { target: "moistureDeduction", value: "moistureDeduction", formatter: formatKg },
     { target: "purchaseTotal", value: "purchaseTotal", formatter: formatMoney },
     { target: "advance", value: "advancePayment", formatter: formatMoney },
     { target: "finalPayable", value: "finalPayable", formatter: formatMoney },
@@ -1673,6 +1729,7 @@ createPurchaseModule({
     { target: "vehicle", value: (data) => data.vehicleNumber || "-" },
     { target: "totalBags", value: (data) => String(data.totalBags) },
     { target: "totalWeight", value: "totalWeight", formatter: formatKg },
+    { target: "moistureDeduction", value: "moistureDeduction", formatter: formatKg },
     { target: "advance", value: "advancePayment", formatter: formatMoney },
     { target: "purchaseTotal", value: "purchaseTotal", formatter: formatMoney },
     { target: "advanceTotal", value: "advancePayment", formatter: formatMoney },
@@ -1682,21 +1739,25 @@ createPurchaseModule({
     const bags = parseNumber(row.querySelector(".entry-bags").value);
     const weightPerBag = parseNumber(row.querySelector(".entry-weight-per-bag").value);
     const rate = parseNumber(row.querySelector(".entry-rate").value);
+    const moisturePer1000 = parseNumber(row.querySelector(".entry-moisture-per-1000").value);
     const type = getEntryTypeValue(row);
-    const weight = bags * weightPerBag;
-    const amount = (weight / 1000) * rate;
+    const result = calculateMoistureAdjustedWeight(bags * weightPerBag, moisturePer1000);
+    const amount = (result.netWeight / 1000) * rate;
 
-    row.querySelector(".entry-weight").value = formatKg(weight);
+    writeMoistureAdjustedRow(row, result);
     row.querySelector(".entry-amount").value = formatMoney(amount);
 
     return {
       type: type || "-",
       bags,
       weightPerBag,
-      weight,
+      weight: result.grossEntryWeight,
+      moisturePer1000: result.moisturePer1000,
+      moistureDeduction: result.moistureDeduction,
+      netWeight: result.netWeight,
       rate,
       amount,
-      isMeaningful: Boolean(type) || bags > 0 || weightPerBag > 0 || rate > 0,
+      isMeaningful: Boolean(type) || bags > 0 || weightPerBag > 0 || rate > 0 || moisturePer1000 > 0,
     };
   },
   renderPrintRow(entry) {
@@ -1706,6 +1767,9 @@ createPurchaseModule({
         <td>${entry.bags}</td>
         <td>${formatKg(entry.weightPerBag)}</td>
         <td>${formatKg(entry.weight)}</td>
+        <td>${formatKg(entry.moisturePer1000)}</td>
+        <td>${formatKg(entry.moistureDeduction)}</td>
+        <td>${formatKg(entry.netWeight)}</td>
         <td>${formatMoney(entry.rate)}</td>
         <td>${formatMoney(entry.amount)}</td>
       </tr>
@@ -1716,7 +1780,8 @@ createPurchaseModule({
   },
   collectData(fields, entries) {
     const totalBags = entries.reduce((sum, entry) => sum + entry.bags, 0);
-    const totalWeight = entries.reduce((sum, entry) => sum + entry.weight, 0);
+    const totalWeight = entries.reduce((sum, entry) => sum + entry.netWeight, 0);
+    const moistureDeduction = sumEntryMoistureDeduction(entries);
     const purchaseTotal = entries.reduce((sum, entry) => sum + entry.amount, 0);
     const advancePayment = parseNumber(fields.advancePayment.value);
     const finalPayable = purchaseTotal - advancePayment;
@@ -1731,6 +1796,12 @@ createPurchaseModule({
       entries,
       totalBags,
       totalWeight,
+      grossWeight: totalWeight + moistureDeduction,
+      dustDeduction: 0,
+      moistureDeduction,
+      finalWeight: totalWeight + moistureDeduction,
+      netWeight: totalWeight,
+      averageWeight: totalBags > 0 ? totalWeight / totalBags : 0,
       purchaseTotal,
       advancePayment,
       finalPayable,
@@ -2200,9 +2271,9 @@ function initializeReportsModule() {
 
   function getEntryRateLabel(record, entry) {
     if (record.moduleKey === "home") {
-      return `${formatKg(entry.weightPerBag)} / bag • ${formatMoney(entry.rate)} / Kg`;
+      return `${formatKg(entry.weightPerBag)} / bag | ${formatMoney(entry.rate)} / 1000 Kg`;
     }
-    return `${formatMoney(entry.rate)} / Kg`;
+    return `${formatMoney(entry.rate)} / 1000 Kg`;
   }
 
   function buildReportPrintSummaryRows(record) {
@@ -2214,6 +2285,7 @@ function initializeReportsModule() {
         ["Driver Name", record.driverName || "-"],
         ["Vehicle Number", record.vehicleNumber || "-"],
         ["Total Weight", formatKg(record.totalWeight)],
+        ["Moisture Deduction", formatKg(record.moistureDeduction)],
         ["Total Bags", String(record.totalBags || 0)],
         ["Purchase Total", formatMoney(record.purchaseTotal)],
         ["Advance Payment", formatMoney(record.advancePayment)],
@@ -2287,12 +2359,14 @@ function initializeReportsModule() {
               <td>${escapeHtml(entry.type || "-")}</td>
               <td>${escapeHtml(String(entry.bags || 0))}</td>
               <td>${formatKg(entry.weight)}</td>
+              <td>${formatKg(entry.moistureDeduction)}</td>
+              <td>${formatKg(entry.netWeight)}</td>
               <td>${escapeHtml(getEntryRateLabel(record, entry))}</td>
               <td class="tally-amount-col">${formatMoney(entry.amount)}</td>
             </tr>
           `)
           .join("")
-      : `<tr><td colspan="5" class="reports-empty inline">No line items recorded for this slip.</td></tr>`;
+      : `<tr><td colspan="7" class="reports-empty inline">No line items recorded for this slip.</td></tr>`;
 
     detailRefs.itemsTotal.textContent = formatMoney(record.totalAmount);
   }
@@ -2386,12 +2460,14 @@ function initializeReportsModule() {
               <td>${escapeHtml(entry.type || "-")}</td>
               <td>${escapeHtml(String(entry.bags || 0))}</td>
               <td>${formatKg(entry.weight)}</td>
+              <td>${formatKg(entry.moistureDeduction)}</td>
+              <td>${formatKg(entry.netWeight)}</td>
               <td>${escapeHtml(getEntryRateLabel(record, entry))}</td>
               <td>${formatMoney(entry.amount)}</td>
             </tr>
           `)
           .join("")
-      : `<tr><td colspan="5">No materials recorded</td></tr>`;
+      : `<tr><td colspan="7">No materials recorded</td></tr>`;
   }
 
   function downloadSingleReport() {
