@@ -30,14 +30,23 @@ function validateSlipPayload(moduleType, payload) {
 }
 
 function normalizeEntries(entries, moduleType) {
-  return entries.map((entry) => ({
-    riceTypeName: String(entry.type || '').trim(),
-    bagCount: toInteger(entry.bags),
-    weightPerBag: moduleType === MODULE_TYPES.HOME ? toNumber(entry.weightPerBag) : 0,
-    totalWeight: toNumber(entry.weight),
-    ratePerKg: toNumber(entry.rate),
-    totalAmount: toNumber(entry.amount),
-  }));
+  return entries.map((entry) => {
+    const totalWeight = toNumber(entry.weight);
+    const moistureDeduction = toNumber(entry.moistureDeduction);
+    const netWeight = toNumber(entry.netWeight ?? Math.max(0, totalWeight - moistureDeduction));
+
+    return {
+      riceTypeName: String(entry.type || '').trim(),
+      bagCount: toInteger(entry.bags),
+      weightPerBag: moduleType === MODULE_TYPES.HOME ? toNumber(entry.weightPerBag) : 0,
+      totalWeight,
+      moisturePer1000: toNumber(entry.moisturePer1000),
+      moistureDeduction,
+      netWeight,
+      ratePerKg: toNumber(entry.rate),
+      totalAmount: toNumber(entry.amount),
+    };
+  });
 }
 
 function normalizeSlipPayload(moduleType, payload) {

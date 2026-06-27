@@ -142,6 +142,23 @@ async function backfillPaymentAllocations(connection) {
   `);
 }
 
+async function ensureSlipItemsMoistureColumns(connection) {
+  const columns = await getColumns(connection, 'slip_items');
+
+  if (!columns.moisture_per_1000) {
+    await connection.execute('ALTER TABLE slip_items ADD COLUMN moisture_per_1000 DECIMAL(12,2) NOT NULL DEFAULT 0 AFTER total_weight');
+  }
+
+  if (!columns.moisture_deduction) {
+    await connection.execute('ALTER TABLE slip_items ADD COLUMN moisture_deduction DECIMAL(12,2) NOT NULL DEFAULT 0 AFTER moisture_per_1000');
+  }
+
+  if (!columns.net_weight) {
+    await connection.execute('ALTER TABLE slip_items ADD COLUMN net_weight DECIMAL(12,2) NOT NULL DEFAULT 0 AFTER moisture_deduction');
+    await connection.execute('UPDATE slip_items SET net_weight = total_weight WHERE net_weight = 0');
+  }
+}
+
 async function recreateSlipPaymentSummaryView(connection) {
   await connection.execute(`
     CREATE OR REPLACE VIEW vw_slip_payment_summary AS
@@ -182,6 +199,7 @@ async function ensurePaymentSchema() {
     const hasPayments = await hasTable(connection, 'payments');
     const hasSlips = await hasTable(connection, 'slips');
     const hasSuppliers = await hasTable(connection, 'suppliers');
+    const hasSlipItems = await hasTable(connection, 'slip_items');
 
     await connection.beginTransaction();
 
@@ -190,6 +208,10 @@ async function ensurePaymentSchema() {
     }
 
     await ensureUsersTable(connection);
+
+    if (hasSlipItems) {
+      await ensureSlipItemsMoistureColumns(connection);
+    }
 
     if (!hasPayments || !hasSlips) {
       await connection.commit();

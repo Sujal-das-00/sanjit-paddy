@@ -1,6 +1,9 @@
 CREATE DATABASE IF NOT EXISTS toolszil_paddy;
 USE toolszil_paddy;
 
+-- CREATE DATABASE IF NOT EXISTS paddy_management;
+-- USE paddy_management;
+
 CREATE TABLE IF NOT EXISTS rice_types (
   id BIGINT PRIMARY KEY AUTO_INCREMENT,
   name VARCHAR(120) NOT NULL UNIQUE,
@@ -133,6 +136,9 @@ CREATE TABLE IF NOT EXISTS slip_items (
   bag_count INT NOT NULL DEFAULT 0,
   weight_per_bag DECIMAL(12,2) NOT NULL DEFAULT 0,
   total_weight DECIMAL(12,2) NOT NULL DEFAULT 0,
+  moisture_per_1000 DECIMAL(12,2) NOT NULL DEFAULT 0,
+  moisture_deduction DECIMAL(12,2) NOT NULL DEFAULT 0,
+  net_weight DECIMAL(12,2) NOT NULL DEFAULT 0,
   rate_per_kg DECIMAL(12,2) NOT NULL DEFAULT 0,
   total_amount DECIMAL(12,2) NOT NULL DEFAULT 0,
   created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,

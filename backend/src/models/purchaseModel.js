@@ -182,8 +182,8 @@ async function createSlip(payload) {
         `
           INSERT INTO slip_items (
             slip_id, rice_type_id, rice_type_name_snapshot, bag_count,
-            weight_per_bag, total_weight, rate_per_kg, total_amount
-          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+            weight_per_bag, total_weight, moisture_per_1000, moisture_deduction, net_weight, rate_per_kg, total_amount
+          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         `,
         [
           slipId,
@@ -192,6 +192,9 @@ async function createSlip(payload) {
           entry.bagCount,
           entry.weightPerBag,
           entry.totalWeight,
+          entry.moisturePer1000,
+          entry.moistureDeduction,
+          entry.netWeight,
           entry.ratePerKg,
           entry.totalAmount,
         ]
@@ -278,8 +281,8 @@ async function updateSlipById(slipId, payload) {
         `
           INSERT INTO slip_items (
             slip_id, rice_type_id, rice_type_name_snapshot, bag_count,
-            weight_per_bag, total_weight, rate_per_kg, total_amount
-          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+            weight_per_bag, total_weight, moisture_per_1000, moisture_deduction, net_weight, rate_per_kg, total_amount
+          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         `,
         [
           slipId,
@@ -288,6 +291,9 @@ async function updateSlipById(slipId, payload) {
           entry.bagCount,
           entry.weightPerBag,
           entry.totalWeight,
+          entry.moisturePer1000,
+          entry.moistureDeduction,
+          entry.netWeight,
           entry.ratePerKg,
           entry.totalAmount,
         ]
