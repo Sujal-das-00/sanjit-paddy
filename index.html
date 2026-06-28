@@ -1283,21 +1283,21 @@
                           <input type="date" id="paymentEntryDate" required />
                         </label>
                         <label class="field">
-                          <span>Amount</span>
+                          <span>Amount<em style="color:red;"> *</em></span>
                           <input type="number" id="paymentEntryAmount" min="0" step="0.01" placeholder="0.00" required />
                         </label>
                         <label class="field hidden" id="paymentEntrySupplierAccountWrap">
-                          <span>Supplier Account No</span>
+                          <span>Supplier Account No<em style="color:red;"> *</em></span>
                           <select id="paymentEntrySupplierAccount" data-searchable-select="true">
                             <option value="">Select supplier account</option>
                           </select>
                         </label>
                         <label class="field" id="paymentEntryBankAccountWrap">
-                          <span>Bank Account</span>
+                          <span>Bank Account<em style="color:red;"> *</em></span>
                           <input type="text" id="paymentEntryBankAccount" placeholder="HDFC Main Account" required />
                         </label>
                         <label class="field">
-                          <span>Mode</span>
+                          <span>Mode<em style="color:red;"> *</em></span>
                           <select id="paymentEntryMode" required data-searchable-select="true">
                             <option value="">Select mode</option>
                             <option>Cash</option>
@@ -1308,7 +1308,7 @@
                           </select>
                         </label>
                         <label class="field span-2">
-                          <span>Reference Number</span>
+                          <span>Reference Number<em style="color:red;"> *</em></span>
                           <input type="text" id="paymentEntryReference" placeholder="Unique txn / cheque number" required />
                         </label>
                         <label class="field span-2">
