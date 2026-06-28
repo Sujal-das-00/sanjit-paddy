@@ -2912,6 +2912,7 @@ function initializePaymentsModule() {
       await Promise.all([renderCards(), loadDashboardData()]);
       renderModal(currentPaymentDetail);
       syncPaymentAccountField(currentPaymentDetail);
+      showToast("Payment recorded successfully.");
     } catch (error) {
       notifyError(error);
     }
