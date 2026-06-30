@@ -2,6 +2,12 @@ const { query } = require('../config/database');
 const { toNumber } = require('../utils/number');
 const { getPartyNameExpression } = require('./paymentLedgerModel');
 
+function maskAccountNumber(value) {
+  const digits = String(value || '').replace(/\D/g, '');
+  if (!digits) return '-';
+  return `XX${digits.slice(-4).padStart(4, '0')}`;
+}
+
 function buildReportWhere(filters = {}) {
   const clauses = ['1 = 1'];
   const params = [];
@@ -235,8 +241,8 @@ async function getPartyStatement(filters) {
       amount: toNumber(row.advancePayment),
       mode: 'advance',
       bankAccount: null,
-      referenceCode: row.slipNumber,
-      remark: null,
+      referenceCode: 'Advance Payment',
+      remark: 'Advance against purchase',
     }));
 
   const paymentHistoryRows = [...advanceRows, ...paymentRows].sort((left, right) => {
@@ -272,15 +278,15 @@ async function getPartyStatement(filters) {
   const payments = paymentHistoryRows.map((payment, index) => {
     const mode = String(payment.mode || '').trim();
     const isAdvance = mode.toLowerCase() === 'advance';
-    const reference = isAdvance
-      ? 'Advance Payment'
-      : String(payment.referenceCode || '').trim() || `${mode || 'Payment'} Payment`;
+    const reference = String(payment.referenceCode || '').trim() || (isAdvance ? 'Advance Payment' : `${mode || 'Payment'} Payment`);
 
     return {
       slNo: index + 1,
       date: payment.paymentDate,
       mode: isAdvance ? 'Advance' : mode || '-',
+      accountNo: isAdvance ? maskAccountNumber(filters.accountNumber) : maskAccountNumber(filters.accountNumber || payment.bankAccount),
       reference,
+      remarks: String(payment.remark || '').trim() || (isAdvance ? 'Advance against purchase' : '-'),
       amount: toNumber(payment.amount),
     };
   });

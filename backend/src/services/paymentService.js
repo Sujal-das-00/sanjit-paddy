@@ -69,15 +69,6 @@ async function createPayment(payload) {
     }
   }
 
-  const existingReference = await paymentLedgerModel.findPaymentByReferenceCode(
-    require('../config/database').query,
-    String(payload.referenceCode).trim()
-  );
-
-  if (existingReference) {
-    throw new AppError('Reference number must be unique', 400);
-  }
-
   const record = await paymentModel.getPaymentOrder({
     partyView: payload.partyView,
     partyName: payload.partyName,

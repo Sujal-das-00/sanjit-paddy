@@ -83,16 +83,32 @@ function buildApiUrl(path, query = {}) {
 }
 
 async function apiRequest(path, options = {}) {
-  const { method = "GET", query, body } = options;
-  const response = await fetch(buildApiUrl(path, query), {
-    method,
-    credentials: "include",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: body ? JSON.stringify(body) : undefined,
-  });
+  const { method = "GET", query, body, timeoutMs = 20000 } = options;
+  const controller = new AbortController();
+  const timeoutId = window.setTimeout(() => controller.abort(), timeoutMs);
 
+  let response;
+  try {
+    response = await fetch(buildApiUrl(path, query), {
+      method,
+      credentials: "include",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: body ? JSON.stringify(body) : undefined,
+      signal: controller.signal,
+    });
+  } catch (error) {
+    window.clearTimeout(timeoutId);
+    if (error.name === "AbortError") {
+      const timeoutError = new Error("Request timed out. Please try again.");
+      timeoutError.status = 408;
+      throw timeoutError;
+    }
+    throw error;
+  }
+
+  window.clearTimeout(timeoutId);
   const payload = await response.json().catch(() => ({}));
   if (!response.ok) {
     const message = payload.message || `Request failed with status ${response.status}`;
@@ -2196,6 +2212,8 @@ function initializeReportsModule() {
     block: document.getElementById("reportStatementPrintBlock"),
     title: document.getElementById("statementPrintTitle"),
     subtitle: document.getElementById("statementPrintSubtitle"),
+    statementHeading: document.getElementById("statementPrintHeading"),
+    generatedAt: document.getElementById("statementPrintGeneratedAt"),
     name: document.getElementById("statementPrintName"),
     kind: document.getElementById("statementPrintKind"),
     period: document.getElementById("statementPrintPeriod"),
@@ -2490,6 +2508,8 @@ function initializeReportsModule() {
 
     statementRefs.title.textContent = "MAA LAXMI TRADERS";
     statementRefs.subtitle.textContent = `${getPartyKindLabel(meta.partyView)} Ledger Report`;
+    statementRefs.statementHeading.textContent = `${meta.partyName} - Account Statement`;
+    statementRefs.generatedAt.textContent = `${formatDateForDisplay(new Date().toISOString().slice(0, 10))}, ${new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", hour12: false })}`;
     statementRefs.name.textContent = meta.partyName;
     statementRefs.kind.textContent = getPartyKindLabel(meta.partyView);
     statementRefs.period.textContent =
@@ -2530,13 +2550,15 @@ function initializeReportsModule() {
               <td>${payment.slNo}</td>
               <td>${escapeHtml(formatDateForDisplay(payment.date))}</td>
               <td>${escapeHtml(payment.mode || "-")}</td>
+              <td>${escapeHtml(payment.accountNo || "-")}</td>
               <td>${escapeHtml(payment.reference || "-")}</td>
+              <td>${escapeHtml(payment.remarks || "-")}</td>
               <td>${formatMoney(payment.amount)}</td>
             </tr>
           `
           )
           .join("")
-      : `<tr><td colspan="5">No payments recorded for the selected filters.</td></tr>`;
+      : `<tr><td colspan="7">No payments recorded for the selected filters.</td></tr>`;
     statementRefs.totalPayments.textContent = formatMoney(
       payments.reduce((sum, payment) => sum + parseNumber(payment.amount), 0)
     );
@@ -2624,6 +2646,7 @@ function initializePaymentsModule() {
   const paymentEntryBankAccountWrap = document.getElementById("paymentEntryBankAccountWrap");
   const paymentEntrySupplierAccount = document.getElementById("paymentEntrySupplierAccount");
   const paymentEntrySupplierAccountWrap = document.getElementById("paymentEntrySupplierAccountWrap");
+  const paymentSubmitButton = paymentForm.querySelector('button[type="submit"]');
 
   if (!viewButtons.length || !searchInput || !slipSearchInput || !cardGrid || !modalBackdrop || !modalClose || !paymentForm) return;
 
@@ -2643,6 +2666,7 @@ function initializePaymentsModule() {
 
   let activeView = "farmers";
   let selectedPartyName = null;
+  let isSavingPayment = false;
 
   function getViewLabel(view) {
     if (view === "farmers") return "Farmer Ledgers";
@@ -2879,7 +2903,7 @@ function initializePaymentsModule() {
 
   paymentForm.addEventListener("submit", async (event) => {
     event.preventDefault();
-    if (!selectedPartyName) return;
+    if (!selectedPartyName || isSavingPayment) return;
 
     const date = document.getElementById("paymentEntryDate").value;
     const amount = parseNumber(document.getElementById("paymentEntryAmount").value);
@@ -2892,9 +2916,16 @@ function initializePaymentsModule() {
 
     if (!date || amount <= 0 || !bankAccount || !mode || !reference) return;
 
+    isSavingPayment = true;
+    if (paymentSubmitButton) {
+      paymentSubmitButton.disabled = true;
+      paymentSubmitButton.textContent = "Saving...";
+    }
+
     try {
       const detail = await apiRequest("/payments", {
         method: "POST",
+        timeoutMs: 30000,
         body: {
           partyView: activeView,
           partyName: selectedPartyName,
@@ -2915,6 +2946,12 @@ function initializePaymentsModule() {
       showToast("Payment recorded successfully.");
     } catch (error) {
       notifyError(error);
+    } finally {
+      isSavingPayment = false;
+      if (paymentSubmitButton) {
+        paymentSubmitButton.disabled = false;
+        paymentSubmitButton.textContent = "Add Payment";
+      }
     }
   });
 

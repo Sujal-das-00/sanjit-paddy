@@ -1,4 +1,5 @@
 const { query } = require('../config/database');
+const { AppError } = require('../utils/AppError');
 const { toNumber } = require('../utils/number');
 
 const PARTY_VIEW_TO_MODULE_TYPE = {
@@ -223,6 +224,35 @@ async function findPaymentByReferenceCode(executor, referenceCode) {
   return rows[0] || null;
 }
 
+
+async function findExistingPaymentForCreate(connection, payload) {
+  const [rows] = await connection.execute(
+    `
+      SELECT id
+      FROM payments
+      WHERE party_view = ?
+        AND party_name = ?
+        AND payment_date = ?
+        AND amount = ?
+        AND bank_account = ?
+        AND mode = ?
+        AND reference_code = ?
+      LIMIT 1
+    `,
+    [
+      payload.partyView,
+      payload.partyName,
+      payload.paymentDate,
+      payload.amount,
+      payload.bankAccount,
+      payload.mode,
+      payload.referenceCode,
+    ]
+  );
+
+  return rows[0] || null;
+}
+
 async function createPartyPayment(connection, payload) {
   const slips = await listPartySlips(
     (sql, params) => connection.execute(sql, params).then(([rows]) => rows),
@@ -233,6 +263,20 @@ async function createPartyPayment(connection, payload) {
 
   if (!slips.length) {
     return null;
+  }
+
+  const existingPayment = await findExistingPaymentForCreate(connection, payload);
+  if (existingPayment) {
+    return existingPayment.id;
+  }
+
+  const referenceConflict = await findPaymentByReferenceCode(
+    (sql, params) => connection.execute(sql, params).then(([rows]) => rows),
+    payload.referenceCode
+  );
+
+  if (referenceConflict) {
+    throw new AppError('Reference number already exists for another payment', 400);
   }
 
   const [result] = await connection.execute(
@@ -290,5 +334,6 @@ module.exports = {
   listPartyPayments,
   listPartySlips,
   findPaymentByReferenceCode,
+  findExistingPaymentForCreate,
   createPartyPayment,
 };

@@ -1103,22 +1103,26 @@
                 </div>
               </section>
 
-              <section class="reports-print-block hidden" id="reportStatementPrintBlock">
-                <div class="statement-header">
-                  <h1 id="statementPrintTitle">Party Account Statement</h1>
+              <section class="reports-print-block hidden statement-sheet" id="reportStatementPrintBlock">
+                <div class="statement-topline">
+                  <span id="statementPrintGeneratedAt">-</span>
+                  <strong id="statementPrintHeading">Party Account Statement</strong>
+                </div>
+                <div class="statement-brand-header print-title">
+                  <h3 id="statementPrintTitle">MAA LAXMI TRADERS</h3>
                   <p id="statementPrintSubtitle">Ledger Report</p>
                 </div>
-                <div class="statement-meta-row">
+                <div class="statement-meta-panels">
                   <div><span>Party</span><strong id="statementPrintName">-</strong></div>
                   <div><span>Record Type</span><strong id="statementPrintKind">-</strong></div>
                   <div><span>Statement Period</span><strong id="statementPrintPeriod">-</strong></div>
                 </div>
-                <div class="statement-totals-row">
+                <div class="statement-totals-row statement-totals-panels">
                   <div><span>All Time Buy Amount</span><strong id="statementTotalCredit">Rs 0.00</strong></div>
                   <div><span>Paid Amount</span><strong id="statementTotalPaid" class="amount-positive">Rs 0.00</strong></div>
                   <div><span>Pending Amount</span><strong id="statementTotalPending" class="amount-negative">Rs 0.00</strong></div>
                 </div>
-                <table class="print-table reports-statement-table">
+                <table class="print-table reports-statement-table statement-main-table">
                   <thead>
                     <tr>
                       <th>Sl No</th>
@@ -1139,20 +1143,22 @@
 
                 <div class="statement-section-divider"><span>Payments Ledger (All Payments)</span></div>
 
-                <table class="print-table reports-statement-table">
+                <table class="print-table reports-statement-table statement-payments-table">
                   <thead>
                     <tr>
                       <th>Sl No</th>
                       <th>Date</th>
                       <th>Mode</th>
+                      <th>Acc No (Last 4 Digits)</th>
                       <th>Reference / Details</th>
+                      <th>Remarks</th>
                       <th>Amount (₹)</th>
                     </tr>
                   </thead>
                   <tbody id="statementPaymentsPrintBody"></tbody>
                   <tfoot>
                     <tr class="statement-total-row">
-                      <td colspan="4">Total Payments</td>
+                      <td colspan="6">Total Payments</td>
                       <td id="statementPrintTotalPayments">Rs 0.00</td>
                     </tr>
                   </tfoot>
