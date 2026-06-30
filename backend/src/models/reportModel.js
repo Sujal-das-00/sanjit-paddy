@@ -175,7 +175,7 @@ async function getPartyPurchaseRows(filters) {
         COALESCE(v.balance_amount, 0) AS outstanding,
         s.purchase_total - s.loading_discount AS reportAmount,
         GROUP_CONCAT(
-          CONCAT(si.rice_type_name_snapshot, ': ', si.bag_count, ' bags / paddy ', si.total_weight, 'kg / moisture ', si.moisture_deduction, 'kg / net ', COALESCE(NULLIF(si.net_weight, 0), si.total_weight), 'kg @ Rs', si.rate_per_kg, '/1000kg')
+          CONCAT(si.rice_type_name_snapshot, ': ', si.bag_count, ' bags / paddy ', si.total_weight, 'kg / moisture ', si.moisture_deduction, 'kg / net ', COALESCE(NULLIF(si.net_weight, 0), si.total_weight), 'kg @ Rs', si.rate_per_kg, '/100kg')
           SEPARATOR '; '
         ) AS itemSummary
       FROM slips s

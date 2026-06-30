@@ -780,7 +780,7 @@ function buildTypeOptions() {
 function calculateMoistureAdjustedWeight(weight, moisturePer1000) {
   const grossEntryWeight = Math.max(0, parseNumber(weight));
   const moistureRate = Math.max(0, parseNumber(moisturePer1000));
-  const moistureDeduction = (grossEntryWeight / 1000) * moistureRate;
+  const moistureDeduction = (grossEntryWeight / 100) * moistureRate;
   const netWeight = Math.max(0, grossEntryWeight - moistureDeduction);
 
   return {
@@ -1386,7 +1386,7 @@ createPurchaseModule({
     const moisturePer1000 = parseNumber(row.querySelector(".entry-moisture-per-1000").value);
     const type = getEntryTypeValue(row);
     const result = calculateMoistureAdjustedWeight(averageWeight * bags, moisturePer1000);
-    const amount = (result.netWeight / 1000) * rate;
+    const amount = (result.netWeight / 100) * rate;
 
     if (shouldWrite) {
       writeMoistureAdjustedRow(row, result);
@@ -1585,7 +1585,7 @@ createPurchaseModule({
     const moisturePer1000 = parseNumber(row.querySelector(".entry-moisture-per-1000").value);
     const type = getEntryTypeValue(row);
     const result = calculateMoistureAdjustedWeight(averageWeight * bags, moisturePer1000);
-    const amount = (result.netWeight / 1000) * rate;
+    const amount = (result.netWeight / 100) * rate;
 
     if (shouldWrite) {
       writeMoistureAdjustedRow(row, result);
@@ -1742,7 +1742,7 @@ createPurchaseModule({
     const moisturePer1000 = parseNumber(row.querySelector(".entry-moisture-per-1000").value);
     const type = getEntryTypeValue(row);
     const result = calculateMoistureAdjustedWeight(bags * weightPerBag, moisturePer1000);
-    const amount = (result.netWeight / 1000) * rate;
+    const amount = (result.netWeight / 100) * rate;
 
     writeMoistureAdjustedRow(row, result);
     row.querySelector(".entry-amount").value = formatMoney(amount);
@@ -2271,9 +2271,9 @@ function initializeReportsModule() {
 
   function getEntryRateLabel(record, entry) {
     if (record.moduleKey === "home") {
-      return `${formatKg(entry.weightPerBag)} / bag | ${formatMoney(entry.rate)} / 1000 Kg`;
+      return `${formatKg(entry.weightPerBag)} / bag | ${formatMoney(entry.rate)} / 100 Kg`;
     }
-    return `${formatMoney(entry.rate)} / 1000 Kg`;
+    return `${formatMoney(entry.rate)} / 100 Kg`;
   }
 
   function buildReportPrintSummaryRows(record) {
