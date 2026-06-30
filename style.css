@@ -835,7 +835,7 @@ body::-webkit-scrollbar-thumb,
 
 #godownEntriesBody td:nth-child(3)::before,
 #sellingEntriesBody td:nth-child(3)::before {
-  content: "Rate / 1000 Kg";
+  content: "Rate / 100 Kg";
 }
 
 #homeEntriesBody td:nth-child(3)::before {
@@ -851,7 +851,7 @@ body::-webkit-scrollbar-thumb,
 #godownEntriesBody td:nth-child(5)::before,
 #sellingEntriesBody td:nth-child(5)::before,
 #homeEntriesBody td:nth-child(5)::before {
-  content: "Moisture / 1000 Kg";
+  content: "Moisture / 100 Kg";
 }
 
 #godownEntriesBody td:nth-child(6)::before,
@@ -872,7 +872,7 @@ body::-webkit-scrollbar-thumb,
 }
 
 #homeEntriesBody td:nth-child(8)::before {
-  content: "Rate / 1000 Kg";
+  content: "Rate / 100 Kg";
 }
 
 #homeEntriesBody td:nth-child(9)::before {
