@@ -231,8 +231,6 @@ async function getPartyStatement(filters) {
   const paymentRows = await getPartyPaymentRows(filters);
 
   let totalBuyAmount = 0;
-  let totalPaidAmount = 0;
-  let totalPendingAmount = 0;
 
   const advanceRows = purchaseRows
     .filter((row) => toNumber(row.advancePayment) > 0)
@@ -262,8 +260,6 @@ async function getPartyStatement(filters) {
     if (row.itemSummary) particulars.push(row.itemSummary);
 
     totalBuyAmount += amount;
-    totalPaidAmount += toNumber(row.paidAmount);
-    totalPendingAmount += toNumber(row.outstanding);
 
     return {
       slNo: index + 1,
@@ -274,6 +270,13 @@ async function getPartyStatement(filters) {
       amount,
     };
   });
+
+  // Paid must equal the money actually recorded (advances + payments), not slip allocations
+  const totalPaidAmount = paymentHistoryRows.reduce(
+    (sum, payment) => sum + toNumber(payment.amount),
+    0
+  );
+  const totalPendingAmount = totalBuyAmount - totalPaidAmount;
 
   const payments = paymentHistoryRows.map((payment, index) => {
     const mode = String(payment.mode || '').trim();

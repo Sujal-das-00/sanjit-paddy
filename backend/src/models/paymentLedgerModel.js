@@ -100,14 +100,15 @@ async function listPartyPayments(executor, partyView, partyName) {
 function buildPartySummary(partyView, partyName, slips, payments) {
   const orderCount = slips.length;
   const totalAmount = slips.reduce((sum, slip) => sum + slip.totalAmount, 0);
-  const paidAmount = slips.reduce((sum, slip) => sum + slip.paidAmount, 0);
-  const balanceAmount = slips.reduce((sum, slip) => sum + slip.balanceAmount, 0);
   const totalBags = slips.reduce((sum, slip) => sum + slip.totalBags, 0);
   const totalWeight = slips.reduce((sum, slip) => sum + slip.netWeight, 0);
   const openOrderCount = slips.filter((slip) => slip.balanceAmount > 0).length;
   const paymentTotal = payments.reduce((sum, payment) => sum + toNumber(payment.amount), 0);
   const allocatedPaymentAmount = payments.reduce((sum, payment) => sum + toNumber(payment.allocatedAmount), 0);
   const advanceAmount = slips.reduce((sum, slip) => sum + slip.advancePayment, 0);
+  // Party-level paid reflects money actually recorded; slip allocations only drive per-slip status
+  const paidAmount = advanceAmount + paymentTotal;
+  const balanceAmount = totalAmount - paidAmount;
   const firstOrderDate = slips[0]?.entryDate || null;
   const lastOrderDate = slips[slips.length - 1]?.entryDate || null;
   const lastPaymentDate = payments[0]?.paymentDate || null;
@@ -179,8 +180,8 @@ async function listPartyLedgers(filters = {}) {
         COALESCE(SUM(s.total_bags), 0) AS totalBags,
         COALESCE(SUM(s.net_weight), 0) AS totalWeight,
         COALESCE(SUM(s.final_payable + s.advance_payment), 0) AS totalAmount,
-        COALESCE(SUM(v.paid_amount), 0) AS paidAmount,
-        COALESCE(SUM(v.balance_amount), 0) AS balanceAmount,
+        COALESCE(SUM(s.advance_payment), 0) + COALESCE(payments.paymentOnlyAmount, 0) AS paidAmount,
+        COALESCE(SUM(s.final_payable), 0) - COALESCE(payments.paymentOnlyAmount, 0) AS balanceAmount,
         MIN(s.entry_date) AS firstOrderDate,
         MAX(s.entry_date) AS lastOrderDate,
         payments.lastPaymentDate AS lastPaymentDate,

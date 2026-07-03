@@ -5,10 +5,9 @@ async function getDashboardSummary() {
     SELECT
       COALESCE(SUM(CASE WHEN module_type IN ('godown', 'home') AND entry_date = CURDATE() THEN purchase_total ELSE 0 END), 0) AS todaysPurchases,
       COALESCE(SUM(CASE WHEN module_type = 'selling' AND entry_date = CURDATE() THEN purchase_total ELSE 0 END), 0) AS todaysSales,
-      COALESCE(SUM(v.balance_amount), 0) AS pendingPayments,
+      COALESCE(SUM(s.final_payable), 0) - (SELECT COALESCE(SUM(p.amount), 0) FROM payments p) AS pendingPayments,
       COALESCE(SUM(CASE WHEN module_type IN ('godown', 'home') THEN total_bags ELSE 0 END), 0) AS totalBagsPurchased
     FROM slips s
-    LEFT JOIN vw_slip_payment_summary v ON v.slip_id = s.id
   `);
 
   return summary || {

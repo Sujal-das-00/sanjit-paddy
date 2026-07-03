@@ -2914,7 +2914,10 @@ function initializePaymentsModule() {
     const reference = document.getElementById("paymentEntryReference").value.trim();
     const remark = document.getElementById("paymentEntryRemark").value.trim();
 
-    if (!date || amount <= 0 || !bankAccount || !mode || !reference) return;
+    if (!date || amount <= 0 || !bankAccount || !mode || !reference) {
+      showToast("Fill date, amount, account, mode and reference before saving.", "error");
+      return;
+    }
 
     isSavingPayment = true;
     if (paymentSubmitButton) {
@@ -2939,6 +2942,8 @@ function initializePaymentsModule() {
       });
       currentPaymentDetail = normalizePaymentDetail(detail);
       paymentForm.reset();
+      // form.reset() fires no change event, so the custom dropdown label must be resynced
+      refreshSearchableSelect(document.getElementById("paymentEntryMode"));
       document.getElementById("paymentEntryDate").value = getLocalDateString();
       await Promise.all([renderCards(), loadDashboardData()]);
       renderModal(currentPaymentDetail);
