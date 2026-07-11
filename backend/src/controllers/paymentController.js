@@ -12,3 +12,11 @@ exports.getPaymentOrder = asyncHandler(async (req, res) => {
 exports.createPayment = asyncHandler(async (req, res) => {
   res.status(201).json(await paymentService.createPayment(req.body));
 });
+
+exports.updatePayment = asyncHandler(async (req, res) => {
+  res.json(await paymentService.updatePayment(req.params.id, req.body));
+});
+
+exports.deletePayment = asyncHandler(async (req, res) => {
+  res.json(await paymentService.deletePayment(req.params.id));
+});

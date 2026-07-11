@@ -104,9 +104,18 @@ async function updateSlipById(slipId, payload) {
   return purchaseModel.updateSlipById(slipId, normalized);
 }
 
+async function deleteSlipById(slipId) {
+  const deleted = await purchaseModel.deleteSlipById(slipId);
+  if (!deleted) {
+    throw new AppError('Slip not found', 404);
+  }
+  return deleted;
+}
+
 module.exports = {
   listSlips,
   createSlip,
   getSlipById,
   updateSlipById,
+  deleteSlipById,
 };

@@ -327,6 +327,98 @@ async function createPartyPayment(connection, payload) {
   return result.insertId;
 }
 
+async function getPaymentById(executor, paymentId) {
+  const rows = await executor('SELECT * FROM payments WHERE id = ? LIMIT 1', [paymentId]);
+  return rows[0] || null;
+}
+
+async function allocatePaymentToSlips(connection, paymentId, partyView, partyName, amount) {
+  const slips = await listPartySlips(
+    (sql, params) => connection.execute(sql, params).then(([rows]) => rows),
+    partyView,
+    partyName,
+    { forUpdate: true }
+  );
+
+  let remainingAmount = toNumber(amount);
+
+  for (const slip of slips) {
+    if (remainingAmount <= 0) break;
+    if (slip.balanceAmount <= 0) continue;
+
+    const allocationAmount = Math.min(remainingAmount, slip.balanceAmount);
+    await connection.execute(
+      'INSERT INTO payment_allocations (payment_id, slip_id, allocated_amount) VALUES (?, ?, ?)',
+      [paymentId, slip.id, allocationAmount]
+    );
+    remainingAmount -= allocationAmount;
+  }
+}
+
+async function updatePartyPayment(connection, paymentId, payload) {
+  const existing = await getPaymentById(
+    (sql, params) => connection.execute(sql, params).then(([rows]) => rows),
+    paymentId
+  );
+
+  if (!existing) {
+    return null;
+  }
+
+  const partyView = existing.party_view;
+  const partyName = existing.party_name;
+
+  const [conflictRows] = await connection.execute(
+    'SELECT id FROM payments WHERE reference_code = ? AND id <> ? LIMIT 1',
+    [payload.referenceCode, paymentId]
+  );
+
+  if (conflictRows.length) {
+    throw new AppError('Reference number already exists for another payment', 400);
+  }
+
+  // Clear this payment's allocations first so slip balances reflect the state
+  // without it, then re-run the FIFO allocation for the new amount.
+  await connection.execute('DELETE FROM payment_allocations WHERE payment_id = ?', [paymentId]);
+
+  await connection.execute(
+    `
+      UPDATE payments
+      SET payment_date = ?, amount = ?, bank_account = ?, mode = ?, reference_code = ?, remark = ?, updated_at = CURRENT_TIMESTAMP
+      WHERE id = ?
+    `,
+    [
+      payload.paymentDate,
+      payload.amount,
+      payload.bankAccount,
+      payload.mode,
+      payload.referenceCode,
+      payload.remark || null,
+      paymentId,
+    ]
+  );
+
+  await allocatePaymentToSlips(connection, paymentId, partyView, partyName, payload.amount);
+
+  return { partyView, partyName };
+}
+
+async function deletePartyPayment(connection, paymentId) {
+  const existing = await getPaymentById(
+    (sql, params) => connection.execute(sql, params).then(([rows]) => rows),
+    paymentId
+  );
+
+  if (!existing) {
+    return null;
+  }
+
+  // payment_allocations are removed via ON DELETE CASCADE.
+  await connection.execute('DELETE FROM payments WHERE id = ?', [paymentId]);
+
+  return { partyView: existing.party_view, partyName: existing.party_name };
+}
+
 module.exports = {
   getModuleTypeForPartyView,
   getPartyNameExpression,
@@ -337,4 +429,7 @@ module.exports = {
   findPaymentByReferenceCode,
   findExistingPaymentForCreate,
   createPartyPayment,
+  getPaymentById,
+  updatePartyPayment,
+  deletePartyPayment,
 };

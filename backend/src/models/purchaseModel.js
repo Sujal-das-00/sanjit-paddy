@@ -304,10 +304,24 @@ async function updateSlipById(slipId, payload) {
   });
 }
 
+async function deleteSlipById(slipId) {
+  return transaction(async (connection) => {
+    const current = await getSlipByIdWithConnection(connection, slipId);
+    if (!current) return null;
+
+    // slip_items and payment_allocations are removed via ON DELETE CASCADE.
+    // Payment records stay (they are party-level); only their allocations to
+    // this slip are cleared, so party balances stay correct.
+    await connection.execute('DELETE FROM slips WHERE id = ?', [slipId]);
+    return { id: Number(slipId) };
+  });
+}
+
 module.exports = {
   listSlips,
   createSlip,
   getSlipById,
   getSlipHeaderById,
   updateSlipById,
+  deleteSlipById,
 };

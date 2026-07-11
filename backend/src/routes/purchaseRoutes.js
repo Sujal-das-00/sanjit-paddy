@@ -11,5 +11,6 @@ purchasesRouter.get('/selling', purchaseController.listSellingEntries);
 purchasesRouter.post('/selling', purchaseController.createSellingEntry);
 purchasesRouter.get('/slips/:slipId', purchaseController.getSlipById);
 purchasesRouter.put('/slips/:slipId', purchaseController.updateSlipById);
+purchasesRouter.delete('/slips/:slipId', purchaseController.deleteSlipById);
 
 module.exports = { purchasesRouter };

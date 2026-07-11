@@ -618,6 +618,7 @@ function normalizePaymentDetail(item) {
       advanceAmount,
     }),
     payments: (item.payments || []).map((payment) => ({
+      id: payment.id != null ? String(payment.id) : "",
       date: payment.payment_date || payment.paymentDate,
       amount: parseNumber(payment.amount),
       bankAccount: payment.bank_account || payment.bankAccount || "-",
@@ -714,16 +715,24 @@ async function loadDashboardData() {
   }
 }
 
-async function persistSlipToApi(moduleKey, data) {
-  const path = moduleKey === "godown" ? "/purchases/godown" : moduleKey === "home" ? "/purchases/home" : "/purchases/selling";
+async function persistSlipToApi(moduleKey, data, editingId = null) {
   const payload = {
     ...data,
     entryDate: data.date,
   };
-  const savedRecord = await apiRequest(path, {
-    method: "POST",
-    body: payload,
-  });
+  let savedRecord;
+  if (editingId) {
+    savedRecord = await apiRequest(`/purchases/slips/${editingId}`, {
+      method: "PUT",
+      body: payload,
+    });
+  } else {
+    const path = moduleKey === "godown" ? "/purchases/godown" : moduleKey === "home" ? "/purchases/home" : "/purchases/selling";
+    savedRecord = await apiRequest(path, {
+      method: "POST",
+      body: payload,
+    });
+  }
   await Promise.all([loadReportsData(), loadDashboardData()]);
   if (typeof window.refreshPaymentsView === "function") {
     await window.refreshPaymentsView();
@@ -1155,11 +1164,12 @@ function createPurchaseModule(config) {
     const restore = setButtonState(button, "Saving...");
     try {
       window.lastSavedPurchase = window.lastSavedPurchase || {};
+      const editingId = module.editingSlipId;
       const draftData = recalculate();
-      const savedRecord = await persistSlipToApi(config.key, draftData);
+      const savedRecord = await persistSlipToApi(config.key, draftData, editingId);
       const savedData = { ...draftData, id: savedRecord.id };
       window.lastSavedPurchase[config.key] = savedData;
-      showToast("Entry saved successfully.");
+      showToast(editingId ? "Entry updated successfully." : "Entry saved successfully.");
       reset();
       if (button) {
         button.textContent = "Saved";
@@ -1182,14 +1192,16 @@ function createPurchaseModule(config) {
     const restore = setButtonState(button, "Saving...");
     try {
       window.lastSavedPurchase = window.lastSavedPurchase || {};
+      const editingId = module.editingSlipId;
       const draftData = recalculate();
-      const savedRecord = await persistSlipToApi(config.key, draftData);
+      const savedRecord = await persistSlipToApi(config.key, draftData, editingId);
       const savedData = { ...draftData, id: savedRecord.id };
       window.lastSavedPurchase[config.key] = savedData;
       updateSummary(savedData);
       updatePrintTable(savedData.entries || []);
+      setEditing(null);
       restore();
-      showToast("Entry saved successfully.");
+      showToast(editingId ? "Entry updated successfully." : "Entry saved successfully.");
       viewPanels.forEach((panel) => panel.classList.remove("print-active"));
       module.viewPanel.classList.add("print-active");
       window.print();
@@ -1204,18 +1216,143 @@ function createPurchaseModule(config) {
     config.resetDefaults(module.fields);
     module.entriesBody.innerHTML = "";
     addRow();
+    setEditing(null);
     syncActionState();
+  }
+
+  function updateEditingUI() {
+    const editing = Boolean(module.editingSlipId);
+    editBanner.classList.toggle("hidden", !editing);
+    if (editing) {
+      editBannerLabel.textContent = `Editing slip ${module.editingSlipId} — saving will overwrite the existing entry.`;
+    }
+    module.actionButtons.forEach((button) => {
+      if (button.dataset.action === "save") {
+        button.textContent = editing ? "Update Entry" : (button.dataset.defaultLabel || "Save Entry");
+      }
+    });
+  }
+
+  function setEditing(id) {
+    module.editingSlipId = id || null;
+    updateEditingUI();
+  }
+
+  function fillEntryRow(row, entry) {
+    const typeSelect = row.querySelector(".entry-type");
+    if (typeSelect) {
+      const typeValue = entry.type && entry.type !== "-" ? entry.type : "";
+      if (typeValue && Array.isArray(paddyTypes) && paddyTypes.includes(typeValue)) {
+        typeSelect.value = typeValue;
+        syncEntryTypeOtherField(row);
+      } else if (typeValue) {
+        typeSelect.value = "__other__";
+        syncEntryTypeOtherField(row);
+        const otherInput = row.querySelector(".entry-type-other");
+        if (otherInput) otherInput.value = typeValue;
+      }
+      refreshSearchableSelect(typeSelect);
+    }
+
+    const setInput = (selector, value) => {
+      const input = row.querySelector(selector);
+      if (input) input.value = value ? String(value) : "";
+    };
+    setInput(".entry-bags", entry.bags);
+    setInput(".entry-weight-per-bag", entry.weightPerBag);
+    setInput(".entry-rate", entry.rate);
+    setInput(".entry-moisture-per-1000", entry.moisturePer1000);
+  }
+
+  function loadForEdit(record) {
+    reset();
+
+    const partyByModule = {
+      godown: record.supplierName || record.partyName,
+      selling: record.companyName || record.partyName,
+      home: record.farmerName || record.partyName,
+    };
+
+    const fieldValues = {
+      entryDate: record.date || "",
+      slipNumber: record.slipNumber === "-" ? "" : (record.slipNumber || ""),
+      vehicleNumber: record.vehicleNumber === "-" ? "" : (record.vehicleNumber || ""),
+      supplierName: partyByModule.godown,
+      companyName: partyByModule.selling,
+      farmerName: partyByModule.home,
+      driverName: record.driverName || "",
+      grossWeight: record.grossWeight || "",
+      dustDeduction: record.dustDeduction || "",
+      totalBags: record.totalBags || "",
+      moistureNote: record.moistureNote || "",
+      loadingDiscount: record.loadingDiscount || "",
+      advancePayment: record.advancePayment || "",
+    };
+
+    Object.entries(module.fields).forEach(([key, element]) => {
+      if (!element || !(key in fieldValues)) return;
+      const value = fieldValues[key] == null ? "" : String(fieldValues[key]);
+      if (element.tagName === "SELECT") {
+        const hasOption = [...element.options].some((option) => option.value === value);
+        if (value && !hasOption) {
+          element.add(new Option(value, value));
+        }
+        element.value = value;
+        refreshSearchableSelect(element);
+      } else {
+        element.value = value;
+      }
+    });
+
+    const entries = Array.isArray(record.entries) ? record.entries : [];
+    module.entriesBody.innerHTML = "";
+    if (entries.length) {
+      entries.forEach((entry) => {
+        const row = module.rowTemplate.content.firstElementChild.cloneNode(true);
+        module.entriesBody.appendChild(row);
+        bindRow(row);
+        fillEntryRow(row, entry);
+      });
+    } else {
+      addRow();
+    }
+
+    setEditing(record.id);
+    recalculate();
+    syncActionState();
+    activateView(config.viewName);
+    form.scrollIntoView({ behavior: "smooth", block: "start" });
   }
 
   function shouldRecalculate(target) {
     return target instanceof HTMLElement && target.matches("input, select, textarea");
   }
 
+  const editBanner = document.createElement("div");
+  editBanner.className = "form-edit-banner hidden";
+  const editBannerLabel = document.createElement("span");
+  const editCancelButton = document.createElement("button");
+  editCancelButton.type = "button";
+  editCancelButton.className = "form-edit-cancel";
+  editCancelButton.textContent = "Cancel edit";
+  editBanner.appendChild(editBannerLabel);
+  editBanner.appendChild(editCancelButton);
+  form.prepend(editBanner);
+  editCancelButton.addEventListener("click", () => reset());
+
+  module.actionButtons.forEach((button) => {
+    if (button.dataset.action === "save") {
+      button.dataset.defaultLabel = button.textContent;
+    }
+  });
+
   module.addRow = addRow;
   module.recalculate = recalculate;
   module.save = save;
   module.print = print;
   module.reset = reset;
+  module.loadForEdit = loadForEdit;
+  setEditing(null);
 
   form.addEventListener("input", (event) => {
     if (shouldRecalculate(event.target)) {
@@ -1280,7 +1417,9 @@ function createPurchaseModule(config) {
   return module;
 }
 
-createPurchaseModule({
+window.purchaseModules = window.purchaseModules || {};
+
+window.purchaseModules.godown = createPurchaseModule({
   key: "godown",
   viewName: "godown-entry",
   formId: "godownForm",
@@ -1479,7 +1618,7 @@ createPurchaseModule({
   },
 });
 
-createPurchaseModule({
+window.purchaseModules.selling = createPurchaseModule({
   key: "selling",
   viewName: "selling",
   formId: "sellingForm",
@@ -1678,7 +1817,7 @@ createPurchaseModule({
   },
 });
 
-createPurchaseModule({
+window.purchaseModules.home = createPurchaseModule({
   key: "home",
   viewName: "home-entry",
   formId: "homeForm",
@@ -1828,6 +1967,17 @@ createPurchaseModule({
     fields.advancePayment.value = "";
   },
 });
+
+window.editReportSlip = function editReportSlip(record) {
+  const modules = window.purchaseModules || {};
+  const target = record && modules[record.moduleKey];
+  if (!target || typeof target.loadForEdit !== "function") {
+    showToast("This entry cannot be edited.", "error");
+    return false;
+  }
+  target.loadForEdit(record);
+  return true;
+};
 
 function escapeHtml(value) {
   return String(value ?? "")
@@ -2192,6 +2342,8 @@ function initializeReportsModule() {
     items: document.getElementById("reportItemsList"),
     itemsTotal: document.getElementById("reportItemsTotal"),
     printButton: document.getElementById("reportPrintButton"),
+    editButton: document.getElementById("reportEditButton"),
+    deleteButton: document.getElementById("reportDeleteButton"),
   };
 
   const printRefs = {
@@ -2496,6 +2648,41 @@ function initializeReportsModule() {
     runPrintJob(`${currentReportDetail.partyName} - ${currentReportDetail.slipNumber}`);
   }
 
+  function editSelectedReport() {
+    if (!currentReportDetail) return;
+    const record = currentReportDetail;
+    closeModal();
+    window.editReportSlip(record);
+  }
+
+  async function deleteSelectedReport() {
+    if (!currentReportDetail) return;
+    const record = currentReportDetail;
+    const confirmed = window.confirm(
+      `Delete slip ${record.slipNumber} for ${record.partyName}? This permanently removes the entry and cannot be undone.`
+    );
+    if (!confirmed) return;
+
+    const previousLabel = detailRefs.deleteButton.textContent;
+    detailRefs.deleteButton.disabled = true;
+    detailRefs.deleteButton.textContent = "Deleting...";
+    try {
+      await apiRequest(`/purchases/slips/${record.id}`, { method: "DELETE" });
+      showToast("Entry deleted.");
+      closeModal();
+      await Promise.all([loadReportsData(), loadDashboardData()]);
+      if (typeof window.refreshPaymentsView === "function") {
+        await window.refreshPaymentsView();
+      }
+      renderCards();
+    } catch (error) {
+      notifyError(error);
+    } finally {
+      detailRefs.deleteButton.disabled = false;
+      detailRefs.deleteButton.textContent = previousLabel;
+    }
+  }
+
   function getPartyKindLabel(view) {
     if (view === "farmers") return "Farmer";
     if (view === "suppliers") return "Supplier";
@@ -2623,6 +2810,8 @@ function initializeReportsModule() {
   clearFiltersButton.addEventListener("click", clearFilters);
   if (exportStatementButton) exportStatementButton.addEventListener("click", downloadPartyStatement);
   detailRefs.printButton.addEventListener("click", downloadSingleReport);
+  if (detailRefs.editButton) detailRefs.editButton.addEventListener("click", editSelectedReport);
+  if (detailRefs.deleteButton) detailRefs.deleteButton.addEventListener("click", deleteSelectedReport);
   modalClose.addEventListener("click", closeModal);
   modalBackdrop.addEventListener("click", (event) => {
     if (event.target === modalBackdrop) closeModal();
@@ -2647,6 +2836,7 @@ function initializePaymentsModule() {
   const paymentEntrySupplierAccount = document.getElementById("paymentEntrySupplierAccount");
   const paymentEntrySupplierAccountWrap = document.getElementById("paymentEntrySupplierAccountWrap");
   const paymentSubmitButton = paymentForm.querySelector('button[type="submit"]');
+  const paymentCancelEditButton = document.getElementById("paymentEntryCancelEdit");
 
   if (!viewButtons.length || !searchInput || !slipSearchInput || !cardGrid || !modalBackdrop || !modalClose || !paymentForm) return;
 
@@ -2667,6 +2857,7 @@ function initializePaymentsModule() {
   let activeView = "farmers";
   let selectedPartyName = null;
   let isSavingPayment = false;
+  let editingPaymentId = null;
 
   function getViewLabel(view) {
     if (view === "farmers") return "Farmer Ledgers";
@@ -2705,11 +2896,81 @@ function initializePaymentsModule() {
     }
   }
 
+  function setPaymentEditing(id) {
+    editingPaymentId = id || null;
+    const editing = Boolean(editingPaymentId);
+    if (paymentSubmitButton) {
+      paymentSubmitButton.textContent = editing ? "Update Payment" : "Add Payment";
+    }
+    if (paymentCancelEditButton) {
+      paymentCancelEditButton.classList.toggle("hidden", !editing);
+    }
+  }
+
+  function resetPaymentForm() {
+    paymentForm.reset();
+    refreshSearchableSelect(document.getElementById("paymentEntryMode"));
+    document.getElementById("paymentEntryDate").value = getLocalDateString();
+    setPaymentEditing(null);
+    if (currentPaymentDetail) syncPaymentAccountField(currentPaymentDetail);
+  }
+
   function closeModal() {
     toggleModal(false);
     selectedPartyName = null;
     currentPaymentDetail = null;
+    setPaymentEditing(null);
     syncPaymentAccountField(null);
+  }
+
+  function startPaymentEdit(paymentId) {
+    if (!currentPaymentDetail) return;
+    const payment = (currentPaymentDetail.payments || []).find((item) => item.id === String(paymentId));
+    if (!payment) return;
+
+    if (String(payment.mode || "").toLowerCase() === "advance") {
+      showToast("Advance payments are edited on the purchase slip.", "error");
+      return;
+    }
+
+    setPaymentEditing(String(paymentId));
+    syncPaymentAccountField(currentPaymentDetail);
+
+    document.getElementById("paymentEntryDate").value = payment.date || getLocalDateString();
+    document.getElementById("paymentEntryAmount").value = payment.amount || "";
+    document.getElementById("paymentEntryMode").value = payment.mode || "";
+    refreshSearchableSelect(document.getElementById("paymentEntryMode"));
+    document.getElementById("paymentEntryReference").value = payment.reference || "";
+    document.getElementById("paymentEntryRemark").value = payment.remark === "No remark added" ? "" : (payment.remark || "");
+
+    const bankValue = payment.bankAccount && payment.bankAccount !== "-" ? payment.bankAccount : "";
+    if (paymentEntrySupplierAccountWrap && !paymentEntrySupplierAccountWrap.classList.contains("hidden")) {
+      paymentEntrySupplierAccount.value = bankValue;
+      refreshSearchableSelect(paymentEntrySupplierAccount);
+    } else {
+      document.getElementById("paymentEntryBankAccount").value = bankValue;
+    }
+
+    paymentForm.scrollIntoView({ behavior: "smooth", block: "nearest" });
+  }
+
+  async function deletePayment(paymentId) {
+    if (!currentPaymentDetail) return;
+    const payment = (currentPaymentDetail.payments || []).find((item) => item.id === String(paymentId));
+    const label = payment ? `${formatMoney(payment.amount)} on ${formatDateForDisplay(payment.date)}` : "this payment";
+    if (!window.confirm(`Delete payment of ${label}? This cannot be undone.`)) return;
+
+    try {
+      const detail = await apiRequest(`/payments/${paymentId}`, { method: "DELETE" });
+      currentPaymentDetail = normalizePaymentDetail(detail);
+      if (editingPaymentId === String(paymentId)) resetPaymentForm();
+      await Promise.all([renderCards(), loadDashboardData()]);
+      renderModal(currentPaymentDetail);
+      syncPaymentAccountField(currentPaymentDetail);
+      showToast("Payment deleted.");
+    } catch (error) {
+      notifyError(error);
+    }
   }
 
   function renderModal(order) {
@@ -2748,10 +3009,22 @@ function initializePaymentsModule() {
                 <span>Allocated ${formatMoney(payment.allocatedAmount || 0)}</span>
               </div>
               <p>${escapeHtml(payment.remark || "No remark added")}</p>
+              ${payment.id ? `
+              <div class="payments-history-actions">
+                <button type="button" class="link-btn" data-payment-edit="${escapeHtml(payment.id)}">Edit</button>
+                <button type="button" class="link-btn danger" data-payment-delete="${escapeHtml(payment.id)}">Delete</button>
+              </div>` : ""}
             </article>
           `)
           .join("")
       : `<div class="payments-empty inline">No payments recorded yet.</div>`;
+
+    detailRefs.history.querySelectorAll("[data-payment-edit]").forEach((button) => {
+      button.addEventListener("click", () => startPaymentEdit(button.dataset.paymentEdit));
+    });
+    detailRefs.history.querySelectorAll("[data-payment-delete]").forEach((button) => {
+      button.addEventListener("click", () => deletePayment(button.dataset.paymentDelete));
+    });
 
     detailRefs.allocations.innerHTML = order.slips.length
       ? order.slips
@@ -2807,6 +3080,7 @@ function initializePaymentsModule() {
         },
       });
       currentPaymentDetail = normalizePaymentDetail(detail);
+      setPaymentEditing(null);
       renderModal(currentPaymentDetail);
       syncPaymentAccountField(currentPaymentDetail);
       document.getElementById("paymentEntryDate").value = getLocalDateString();
@@ -2920,45 +3194,50 @@ function initializePaymentsModule() {
     }
 
     isSavingPayment = true;
+    const savingEditId = editingPaymentId;
     if (paymentSubmitButton) {
       paymentSubmitButton.disabled = true;
       paymentSubmitButton.textContent = "Saving...";
     }
 
     try {
-      const detail = await apiRequest("/payments", {
-        method: "POST",
-        timeoutMs: 30000,
-        body: {
-          partyView: activeView,
-          partyName: selectedPartyName,
-          paymentDate: date,
-          amount,
-          bankAccount,
-          mode,
-          referenceCode: reference,
-          remark,
-        },
-      });
+      const body = {
+        partyView: activeView,
+        partyName: selectedPartyName,
+        paymentDate: date,
+        amount,
+        bankAccount,
+        mode,
+        referenceCode: reference,
+        remark,
+      };
+      const detail = savingEditId
+        ? await apiRequest(`/payments/${savingEditId}`, { method: "PUT", timeoutMs: 30000, body })
+        : await apiRequest("/payments", { method: "POST", timeoutMs: 30000, body });
       currentPaymentDetail = normalizePaymentDetail(detail);
       paymentForm.reset();
       // form.reset() fires no change event, so the custom dropdown label must be resynced
       refreshSearchableSelect(document.getElementById("paymentEntryMode"));
       document.getElementById("paymentEntryDate").value = getLocalDateString();
+      setPaymentEditing(null);
       await Promise.all([renderCards(), loadDashboardData()]);
       renderModal(currentPaymentDetail);
       syncPaymentAccountField(currentPaymentDetail);
-      showToast("Payment recorded successfully.");
+      showToast(savingEditId ? "Payment updated successfully." : "Payment recorded successfully.");
     } catch (error) {
       notifyError(error);
     } finally {
       isSavingPayment = false;
       if (paymentSubmitButton) {
         paymentSubmitButton.disabled = false;
-        paymentSubmitButton.textContent = "Add Payment";
+        paymentSubmitButton.textContent = editingPaymentId ? "Update Payment" : "Add Payment";
       }
     }
   });
+
+  if (paymentCancelEditButton) {
+    paymentCancelEditButton.addEventListener("click", resetPaymentForm);
+  }
 
   window.refreshPaymentsView = renderCards;
   switchView(activeView);

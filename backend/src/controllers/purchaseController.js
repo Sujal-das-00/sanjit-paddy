@@ -33,3 +33,7 @@ exports.getSlipById = asyncHandler(async (req, res) => {
 exports.updateSlipById = asyncHandler(async (req, res) => {
   res.json(await purchaseService.updateSlipById(req.params.slipId, req.body));
 });
+
+exports.deleteSlipById = asyncHandler(async (req, res) => {
+  res.json(await purchaseService.deleteSlipById(req.params.slipId));
+});

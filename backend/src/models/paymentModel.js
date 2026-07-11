@@ -26,4 +26,30 @@ async function createPayment(payload) {
   });
 }
 
-module.exports = { listPaymentOrders, getPaymentOrder, createPayment };
+async function updatePayment(paymentId, payload) {
+  return transaction(async (connection) => {
+    const result = await paymentLedgerModel.updatePartyPayment(connection, paymentId, payload);
+    if (!result) return null;
+
+    return paymentLedgerModel.getPartyLedger(
+      (sql, params) => connection.execute(sql, params).then(([rows]) => rows),
+      result.partyView,
+      result.partyName
+    );
+  });
+}
+
+async function deletePayment(paymentId) {
+  return transaction(async (connection) => {
+    const result = await paymentLedgerModel.deletePartyPayment(connection, paymentId);
+    if (!result) return null;
+
+    return paymentLedgerModel.getPartyLedger(
+      (sql, params) => connection.execute(sql, params).then(([rows]) => rows),
+      result.partyView,
+      result.partyName
+    );
+  });
+}
+
+module.exports = { listPaymentOrders, getPaymentOrder, createPayment, updatePayment, deletePayment };

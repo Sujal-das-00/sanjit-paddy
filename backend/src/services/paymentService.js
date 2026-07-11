@@ -89,4 +89,58 @@ async function createPayment(payload) {
   });
 }
 
-module.exports = { listPaymentOrders, getPaymentOrder, createPayment };
+async function updatePayment(paymentId, payload) {
+  if (!paymentId) {
+    throw new AppError('Payment id is required', 400);
+  }
+
+  if (!payload.paymentDate) {
+    throw new AppError('Payment date is required', 400);
+  }
+
+  if (!String(payload.bankAccount || '').trim()) {
+    throw new AppError('Bank account is required', 400);
+  }
+
+  if (!String(payload.mode || '').trim()) {
+    throw new AppError('Payment mode is required', 400);
+  }
+
+  if (!String(payload.referenceCode || '').trim()) {
+    throw new AppError('Reference number is required', 400);
+  }
+
+  if (toNumber(payload.amount) <= 0) {
+    throw new AppError('Payment amount must be greater than zero', 400);
+  }
+
+  const record = await paymentModel.updatePayment(paymentId, {
+    paymentDate: payload.paymentDate,
+    bankAccount: String(payload.bankAccount).trim(),
+    mode: String(payload.mode).trim(),
+    referenceCode: String(payload.referenceCode).trim(),
+    remark: String(payload.remark || '').trim(),
+    amount: toNumber(payload.amount),
+  });
+
+  if (!record) {
+    throw new AppError('Payment not found', 404);
+  }
+
+  return record;
+}
+
+async function deletePayment(paymentId) {
+  if (!paymentId) {
+    throw new AppError('Payment id is required', 400);
+  }
+
+  const record = await paymentModel.deletePayment(paymentId);
+  if (!record) {
+    throw new AppError('Payment not found', 404);
+  }
+
+  return record;
+}
+
+module.exports = { listPaymentOrders, getPaymentOrder, createPayment, updatePayment, deletePayment };
