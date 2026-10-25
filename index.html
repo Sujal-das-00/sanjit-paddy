@@ -108,12 +108,20 @@
             <div class="dashboard-grid stats-grid">
               <article class="card stat-card stat-purchase">
                 <p class="card-kicker">Today's Purchases</p>
-                <strong class="stat-value" id="statTodaysPurchases">Rs 0.00</strong>
+                <button class="stat-value stat-amount-toggle" type="button" id="statTodaysPurchases" aria-expanded="false" aria-controls="statTodaysPurchasesExact">Rs 0</button>
+                <div class="stat-exact hidden" id="statTodaysPurchasesExact" role="dialog" aria-label="Exact amount">
+                  <span>Exact amount</span>
+                  <strong data-exact-value>Rs 0.00</strong>
+                </div>
                 <span class="stat-meta">Godown + home, today</span>
               </article>
               <article class="card stat-card stat-sales">
                 <p class="card-kicker">Today's Sales</p>
-                <strong class="stat-value" id="statTodaysSales">Rs 0.00</strong>
+                <button class="stat-value stat-amount-toggle" type="button" id="statTodaysSales" aria-expanded="false" aria-controls="statTodaysSalesExact">Rs 0</button>
+                <div class="stat-exact hidden" id="statTodaysSalesExact" role="dialog" aria-label="Exact amount">
+                  <span>Exact amount</span>
+                  <strong data-exact-value>Rs 0.00</strong>
+                </div>
                 <span class="stat-meta">To companies, today</span>
               </article>
               <article class="card stat-card stat-bags">
@@ -121,16 +129,26 @@
                 <strong class="stat-value" id="statTotalBags">0</strong>
                 <span class="stat-meta">Godown + home, all time</span>
               </article>
-              <button class="card stat-card stat-payable" type="button" data-finance-open="purchase" title="Open payables">
+              <article class="card stat-card stat-payable">
                 <p class="card-kicker">You Owe</p>
-                <strong class="stat-value" id="statPayableAmount">Rs 0.00</strong>
+                <button class="stat-value stat-amount-toggle" type="button" id="statPayableAmount" aria-expanded="false" aria-controls="statPayableAmountExact">Rs 0</button>
+                <div class="stat-exact hidden" id="statPayableAmountExact" role="dialog" aria-label="Exact amount">
+                  <span>Exact amount</span>
+                  <strong data-exact-value>Rs 0.00</strong>
+                </div>
                 <span class="stat-meta" id="statPayableMeta">-</span>
-              </button>
-              <button class="card stat-card stat-receivable" type="button" data-finance-open="sales" title="Open receivables">
+                <button class="stat-link" type="button" data-finance-open="purchase">View payables &rarr;</button>
+              </article>
+              <article class="card stat-card stat-receivable">
                 <p class="card-kicker">You Will Receive</p>
-                <strong class="stat-value" id="statReceivableAmount">Rs 0.00</strong>
+                <button class="stat-value stat-amount-toggle" type="button" id="statReceivableAmount" aria-expanded="false" aria-controls="statReceivableAmountExact">Rs 0</button>
+                <div class="stat-exact hidden" id="statReceivableAmountExact" role="dialog" aria-label="Exact amount">
+                  <span>Exact amount</span>
+                  <strong data-exact-value>Rs 0.00</strong>
+                </div>
                 <span class="stat-meta" id="statReceivableMeta">-</span>
-              </button>
+                <button class="stat-link" type="button" data-finance-open="sales">View receivables &rarr;</button>
+              </article>
             </div>
 
             <div class="dashboard-split">

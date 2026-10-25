@@ -808,14 +808,20 @@ async function loadDashboardData() {
     const element = document.getElementById(id);
     if (element) element.textContent = value;
   };
+  // Cards show the short form; clicking the amount opens the exact figure.
+  const setMoney = (id, amount) => {
+    setText(id, formatCompactMoney(amount));
+    const exact = document.querySelector(`#${id}Exact [data-exact-value]`);
+    if (exact) exact.textContent = formatIndianMoney(amount);
+  };
   const partyCountLabel = (count, singular, plural) => `${count} ${count === 1 ? singular : plural} pending`;
 
-  setText("statTodaysPurchases", formatMoney(summary.todaysPurchases || 0));
-  setText("statTodaysSales", formatMoney(summary.todaysSales || 0));
-  setText("statTotalBags", String(summary.totalBagsPurchased || 0));
-  setText("statPayableAmount", formatMoney(summary.payableAmount || 0));
+  setMoney("statTodaysPurchases", summary.todaysPurchases || 0);
+  setMoney("statTodaysSales", summary.todaysSales || 0);
+  setText("statTotalBags", formatIndianNumber(summary.totalBagsPurchased || 0, 0));
+  setMoney("statPayableAmount", summary.payableAmount || 0);
   setText("statPayableMeta", partyCountLabel(summary.payablePartyCount || 0, "party", "parties"));
-  setText("statReceivableAmount", formatMoney(summary.receivableAmount || 0));
+  setMoney("statReceivableAmount", summary.receivableAmount || 0);
   setText("statReceivableMeta", partyCountLabel(summary.receivablePartyCount || 0, "company", "companies"));
 
   const items = recent.items || [];
@@ -880,6 +886,26 @@ function notifyError(error) {
 
 function formatKg(value) {
   return `${Number(value || 0).toFixed(2)} Kg`;
+}
+
+function formatIndianNumber(value, decimals = 2) {
+  return Number(value || 0).toLocaleString("en-IN", {
+    minimumFractionDigits: decimals,
+    maximumFractionDigits: decimals,
+  });
+}
+
+function formatIndianMoney(value) {
+  return `Rs ${formatIndianNumber(value)}`;
+}
+
+// Short form for dashboard cards: Rs 1.73 Cr, Rs 49.99 L, Rs 31,282.
+function formatCompactMoney(value) {
+  const amount = Number(value || 0);
+  const absolute = Math.abs(amount);
+  if (absolute >= 1e7) return `Rs ${formatIndianNumber(amount / 1e7)} Cr`;
+  if (absolute >= 1e5) return `Rs ${formatIndianNumber(amount / 1e5)} L`;
+  return `Rs ${formatIndianNumber(amount, 0)}`;
 }
 
 function formatMoney(value) {
@@ -976,6 +1002,32 @@ function activateView(viewName) {
 
 navButtons.forEach((button) => {
   button.addEventListener("click", () => activateView(button.dataset.view));
+});
+
+function closeStatExact(exceptToggle = null) {
+  document.querySelectorAll(".stat-amount-toggle").forEach((toggle) => {
+    if (toggle === exceptToggle) return;
+    toggle.setAttribute("aria-expanded", "false");
+    document.getElementById(toggle.getAttribute("aria-controls"))?.classList.add("hidden");
+  });
+}
+
+document.querySelectorAll(".stat-amount-toggle").forEach((toggle) => {
+  toggle.addEventListener("click", (event) => {
+    event.stopPropagation();
+    const open = toggle.getAttribute("aria-expanded") === "true";
+    closeStatExact(toggle);
+    toggle.setAttribute("aria-expanded", String(!open));
+    document.getElementById(toggle.getAttribute("aria-controls"))?.classList.toggle("hidden", open);
+  });
+});
+
+document.addEventListener("click", (event) => {
+  if (!(event.target instanceof Element) || !event.target.closest(".stat-exact")) closeStatExact();
+});
+
+document.addEventListener("keydown", (event) => {
+  if (event.key === "Escape") closeStatExact();
 });
 
 document.querySelectorAll("[data-finance-open]").forEach((card) => {
