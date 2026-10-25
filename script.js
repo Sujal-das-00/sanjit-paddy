@@ -14,34 +14,72 @@ const paymentsStore = {
 
 const viewMeta = {
   dashboard: {
-    eyebrow: "Operations Overview",
-    title: "Paddy Purchase Dashboard",
+    eyebrow: "Overview",
+    title: "Dashboard",
+    copy: "Today's purchase and sales activity, pending balances and the latest slips at a glance.",
   },
   "godown-entry": {
-    eyebrow: "Godown Purchase",
+    eyebrow: "Purchase",
     title: "Godown Purchase Entry",
+    copy: "Record paddy received at the godown from a supplier, then save or print the bill.",
   },
   "home-entry": {
-    eyebrow: "Home Procurement",
+    eyebrow: "Purchase",
     title: "Home Purchase Entry",
-    },
+    copy: "Record paddy bought directly from a farmer.",
+  },
   selling: {
-    eyebrow: "Sales Module",
-    title: "Selling Entry",
+    eyebrow: "Sales",
+    title: "Sales Entry",
+    copy: "Record paddy sold and dispatched to a company.",
   },
   reports: {
-    eyebrow: "Analytics",
+    eyebrow: "Records",
     title: "Reports",
+    copy: "Purchase and sales records kept separately. Open any slip to view, print, edit or export a party statement.",
   },
   payments: {
-    eyebrow: "Finance Desk",
-    title: "Payments Workspace",
+    eyebrow: "Records",
+    title: "Payments",
+    copy: "Payables to farmers and suppliers, and receivables from companies.",
   },
   settings: {
-    eyebrow: "Configuration",
+    eyebrow: "System",
     title: "Settings",
+    copy: "Master data, staff accounts and permissions.",
   },
 };
+
+// Staff see a narrower version of some screens, so they get their own wording.
+const staffViewMeta = {
+  reports: {
+    eyebrow: "My Work",
+    title: "My Entries",
+    copy: "Godown entries you have recorded. Open one to view or print its bill.",
+  },
+  settings: {
+    eyebrow: "Account",
+    title: "My Account",
+    copy: "Change your password.",
+  },
+};
+
+const session = {
+  user: null,
+  permissions: null,
+};
+
+function isAdmin() {
+  return session.permissions?.role === "admin";
+}
+
+function canAccessView(viewName) {
+  return Boolean(session.permissions?.views?.includes(viewName));
+}
+
+function canEditEntries() {
+  return Boolean(session.permissions?.canEditEntries);
+}
 
 const app = document.getElementById("dashboardApp");
 const sidebar = document.getElementById("sidebar");
@@ -51,9 +89,8 @@ const viewPanels = [...document.querySelectorAll("[data-view-panel]")];
 const pageEyebrow = document.getElementById("pageEyebrow");
 const pageTitle = document.getElementById("pageTitle");
 const pageCopy = document.getElementById("pageCopy");
-const dashboardStatValues = [...document.querySelectorAll(".stat-card .stat-value")];
-const dashboardStatMeta = [...document.querySelectorAll(".stat-card .stat-meta")];
-const dashboardRecentBody = document.querySelector(".dashboard-table tbody");
+const dashboardPurchaseBody = document.getElementById("dashboardPurchaseBody");
+const dashboardSalesBody = document.getElementById("dashboardSalesBody");
 const backendStatusOverlay = document.getElementById("backendStatusOverlay");
 const backendStatusTitle = document.getElementById("backendStatusTitle");
 const backendStatusMessage = document.getElementById("backendStatusMessage");
@@ -173,13 +210,14 @@ function initializeAuthModule() {
     loginError?.classList.add("hidden");
     loginSubmitButton.disabled = true;
     try {
-      await apiRequest("/auth/login", {
+      const response = await apiRequest("/auth/login", {
         method: "POST",
         body: {
           username: loginUsernameInput.value,
           password: loginPasswordInput.value,
         },
       });
+      applySession(response);
       hideLoginOverlay();
       await initializeAppData();
     } catch (error) {
@@ -198,13 +236,73 @@ function initializeAuthModule() {
     } catch (error) {
       console.error(error);
     }
-    showLoginOverlay();
+    // Reload so nothing from this user's session stays in memory for the next login.
+    window.location.reload();
   });
+}
+
+function getUserDisplayName(user) {
+  return user?.fullName || user?.username || "-";
+}
+
+function applySession(payload) {
+  session.user = payload?.user || null;
+  session.permissions = payload?.permissions || null;
+  applyRoleUI();
+}
+
+function applyRoleUI() {
+  const admin = isAdmin();
+  document.body.classList.toggle("role-admin", admin);
+  document.body.classList.toggle("role-staff", Boolean(session.user) && !admin);
+
+  navButtons.forEach((button) => {
+    button.classList.toggle("hidden", !canAccessView(button.dataset.view));
+  });
+  document.querySelectorAll(".nav-group").forEach((group) => {
+    const hasVisibleItem = [...group.querySelectorAll(".nav-item")].some((item) => !item.classList.contains("hidden"));
+    group.classList.toggle("hidden", !hasVisibleItem);
+  });
+  document.querySelectorAll("[data-admin-only]").forEach((element) => {
+    element.classList.toggle("hidden", !admin);
+  });
+
+  const navLabels = {
+    reports: admin ? "Reports" : "My Entries",
+    settings: admin ? "Settings" : "My Account",
+  };
+  Object.entries(navLabels).forEach(([view, label]) => {
+    const labelElement = document.querySelector(`.nav-item[data-view="${view}"] .nav-label`);
+    if (labelElement) labelElement.textContent = label;
+  });
+
+  const name = getUserDisplayName(session.user);
+  const nameElement = document.getElementById("sidebarUserName");
+  const avatarElement = document.getElementById("sidebarUserAvatar");
+  const roleElement = document.getElementById("sidebarUserRole");
+  if (nameElement) nameElement.textContent = name;
+  if (avatarElement) avatarElement.textContent = name.charAt(0).toUpperCase() || "?";
+  if (roleElement) {
+    roleElement.textContent = admin ? "Admin" : "Staff";
+    roleElement.classList.toggle("admin", admin);
+    roleElement.classList.toggle("staff", !admin);
+  }
+
+  if (typeof window.applyReportsRole === "function") window.applyReportsRole();
+  if (typeof window.applySettingsRole === "function") window.applySettingsRole();
+
+  const activeView = navButtons.find((button) => button.classList.contains("active"))?.dataset.view;
+  activateView(canAccessView(activeView) ? activeView : getDefaultView());
+}
+
+function getDefaultView() {
+  return isAdmin() ? "dashboard" : "godown-entry";
 }
 
 async function bootstrapSession() {
   try {
-    await apiRequest("/auth/me");
+    const response = await apiRequest("/auth/me");
+    applySession(response);
     hideLoginOverlay();
     await initializeAppData();
   } catch (error) {
@@ -515,6 +613,7 @@ function normalizeReportListItem(item) {
     totalBags: parseNumber(item.totalBags || item.total_bags),
     totalWeight: parseNumber(item.netWeight || item.net_weight),
     totalAmount: parseNumber(item.reportAmount || item.report_amount || (parseNumber(item.purchaseTotal || item.purchase_total) - parseNumber(item.loadingDiscount || item.loading_discount))),
+    createdByName: item.createdByName || "",
   };
 }
 
@@ -561,6 +660,7 @@ function normalizeSlipDetail(item) {
     purchaseTotal: parseNumber(item.purchase_total || item.purchaseTotal),
     finalPayable: parseNumber(item.final_payable || item.finalPayable),
     totalWeight: parseNumber(item.net_weight || item.total_weight || item.totalWeight),
+    createdByName: item.created_by_name || "",
     entries,
   };
 
@@ -642,11 +742,13 @@ function normalizePaymentDetail(item) {
 }
 
 async function loadSettingsData() {
+  // Staff only fill the godown form, so they only receive rice types and supplier names.
+  const emptyResponse = Promise.resolve({ items: [] });
   const [riceResponse, supplierResponse, driverResponse, companyResponse] = await Promise.all([
     apiRequest("/settings/rice-types"),
     apiRequest("/settings/suppliers"),
-    apiRequest("/settings/drivers"),
-    apiRequest("/settings/companies"),
+    isAdmin() ? apiRequest("/settings/drivers") : emptyResponse,
+    isAdmin() ? apiRequest("/settings/companies") : emptyResponse,
   ]);
 
   const riceItems = (riceResponse.items || []).map((item) => mapSettingRecord("rice", item));
@@ -672,47 +774,61 @@ async function loadReportsData() {
   }
 }
 
+function renderDashboardRows(body, items, emptyLabel) {
+  if (!body) return;
+  body.innerHTML = items.length
+    ? items
+        .map((item) => {
+          const status = formatStatusChip(item.status);
+          return `
+            <tr>
+              <td>${escapeHtml(formatDateForDisplay(item.entryDate))}</td>
+              <td class="cell-strong">${escapeHtml(item.slipNumber)}</td>
+              <td>${escapeHtml(formatModuleLabel(item.moduleType))}</td>
+              <td>${escapeHtml(item.partyName || "-")}</td>
+              <td class="num">${escapeHtml(String(item.totalBags || 0))}</td>
+              <td class="num cell-strong">${formatMoney(item.amount || 0)}</td>
+              <td><span class="status-chip ${status.className}">${status.label}</span></td>
+            </tr>
+          `;
+        })
+        .join("")
+    : `<tr><td colspan="7" class="table-empty">${emptyLabel}</td></tr>`;
+}
+
 async function loadDashboardData() {
+  if (!canAccessView("dashboard")) return;
+
   const [summary, recent] = await Promise.all([
     apiRequest("/dashboard/summary"),
-    apiRequest("/dashboard/recent-transactions", { query: { limit: 10 } }),
+    apiRequest("/dashboard/recent-transactions", { query: { limit: 40 } }),
   ]);
 
-  if (dashboardStatValues.length >= 4) {
-    dashboardStatValues[0].textContent = formatMoney(summary.todaysPurchases || 0);
-    dashboardStatValues[1].textContent = formatMoney(summary.todaysSales || 0);
-    dashboardStatValues[2].textContent = formatMoney(summary.pendingPayments || 0);
-    dashboardStatValues[3].textContent = String(summary.totalBagsPurchased || 0);
-  }
+  const setText = (id, value) => {
+    const element = document.getElementById(id);
+    if (element) element.textContent = value;
+  };
+  const partyCountLabel = (count, singular, plural) => `${count} ${count === 1 ? singular : plural} pending`;
 
-  if (dashboardStatMeta.length >= 4) {
-    dashboardStatMeta[0].textContent = "Live purchase total for today";
-    dashboardStatMeta[1].textContent = "Live selling total for today";
-    dashboardStatMeta[2].textContent = "Outstanding payable across all slips";
-    dashboardStatMeta[3].textContent = "Across godown and home purchase channels";
-  }
+  setText("statTodaysPurchases", formatMoney(summary.todaysPurchases || 0));
+  setText("statTodaysSales", formatMoney(summary.todaysSales || 0));
+  setText("statTotalBags", String(summary.totalBagsPurchased || 0));
+  setText("statPayableAmount", formatMoney(summary.payableAmount || 0));
+  setText("statPayableMeta", partyCountLabel(summary.payablePartyCount || 0, "party", "parties"));
+  setText("statReceivableAmount", formatMoney(summary.receivableAmount || 0));
+  setText("statReceivableMeta", partyCountLabel(summary.receivablePartyCount || 0, "company", "companies"));
 
   const items = recent.items || [];
-  if (dashboardRecentBody) {
-    dashboardRecentBody.innerHTML = items.length
-      ? items
-          .map((item) => {
-            const status = formatStatusChip(item.status);
-            return `
-              <tr>
-                <td>${escapeHtml(formatDateForDisplay(item.entryDate))}</td>
-                <td>${escapeHtml(item.slipNumber)}</td>
-                <td>${escapeHtml(formatModuleLabel(item.moduleType))}</td>
-                <td>${escapeHtml(item.partyName || "-")}</td>
-                <td>${escapeHtml(String(item.totalBags || 0))}</td>
-                <td>${formatMoney(item.amount || 0)}</td>
-                <td><span class="status-chip ${status.className}">${status.label}</span></td>
-              </tr>
-            `;
-          })
-          .join("")
-      : `<tr><td colspan="7">No recent transactions found.</td></tr>`;
-  }
+  renderDashboardRows(
+    dashboardPurchaseBody,
+    items.filter((item) => item.moduleType !== "selling").slice(0, 8),
+    "No purchase entries yet."
+  );
+  renderDashboardRows(
+    dashboardSalesBody,
+    items.filter((item) => item.moduleType === "selling").slice(0, 8),
+    "No sales entries yet."
+  );
 }
 
 async function persistSlipToApi(moduleKey, data, editingId = null) {
@@ -734,7 +850,7 @@ async function persistSlipToApi(moduleKey, data, editingId = null) {
     });
   }
   await Promise.all([loadReportsData(), loadDashboardData()]);
-  if (typeof window.refreshPaymentsView === "function") {
+  if (canAccessView("payments") && typeof window.refreshPaymentsView === "function") {
     await window.refreshPaymentsView();
   }
   return savedRecord;
@@ -838,6 +954,10 @@ function initializeSearchableSelects() {
 }
 
 function activateView(viewName) {
+  if (session.permissions && !canAccessView(viewName)) {
+    viewName = getDefaultView();
+  }
+
   navButtons.forEach((button) => {
     button.classList.toggle("active", button.dataset.view === viewName);
   });
@@ -847,15 +967,22 @@ function activateView(viewName) {
     panel.classList.remove("print-active");
   });
 
-  const meta = viewMeta[viewName] || viewMeta.dashboard;
+  const meta = (!isAdmin() && staffViewMeta[viewName]) || viewMeta[viewName] || viewMeta.dashboard;
   pageEyebrow.textContent = meta.eyebrow;
   pageTitle.textContent = meta.title;
-  pageCopy.textContent = meta.copy;
+  pageCopy.textContent = meta.copy || "";
 
 }
 
 navButtons.forEach((button) => {
   button.addEventListener("click", () => activateView(button.dataset.view));
+});
+
+document.querySelectorAll("[data-finance-open]").forEach((card) => {
+  card.addEventListener("click", () => {
+    activateView("payments");
+    if (typeof window.openPaymentsGroup === "function") window.openPaymentsGroup(card.dataset.financeOpen);
+  });
 });
 
 sidebarToggle.addEventListener("click", () => {
@@ -900,6 +1027,14 @@ function getReportWeight(moduleKey, data) {
 }
 
 function buildReportInfoRows(moduleKey, data, partyName) {
+  const rows = buildSlipInfoRows(moduleKey, data, partyName);
+  if (isAdmin() && data.createdByName) {
+    rows.push({ label: "Entered By", value: data.createdByName });
+  }
+  return rows;
+}
+
+function buildSlipInfoRows(moduleKey, data, partyName) {
   if (moduleKey === "home") {
     return [
       { label: "Farmer", value: partyName },
@@ -978,6 +1113,7 @@ function buildReportRecord(moduleKey, data) {
     summaryText: buildReportSummary(moduleKey, data, partyName),
     infoRows: buildReportInfoRows(moduleKey, data, partyName),
     entries: cloneReportEntries(data.entries),
+    createdByName: data.createdByName || "",
     savedAt: new Date().toISOString(),
   };
 }
@@ -2265,6 +2401,13 @@ function initializeSettingsModule() {
 
   activateSettingsPanel("rice");
 
+  window.activateSettingsPanel = activateSettingsPanel;
+  window.applySettingsRole = () => {
+    const activeButton = switchButtons.find((button) => button.classList.contains("active"));
+    if (!activeButton || activeButton.classList.contains("hidden")) {
+      activateSettingsPanel(isAdmin() ? "rice" : "account");
+    }
+  };
   window.startSettingsEdit = startEdit;
   window.refreshSettingsView = () => {
     renderAllSettings();
@@ -2313,8 +2456,165 @@ function initializeAccountSettings() {
   });
 }
 
+function initializeAccessModule() {
+  const toggle = document.getElementById("accessStaffCanEdit");
+  const toggleLabel = document.getElementById("accessStaffCanEditLabel");
+  const form = document.getElementById("accessUserForm");
+  const list = document.getElementById("accessUserList");
+  const count = document.getElementById("accessUserCount");
+  const submitButton = document.getElementById("accessUserSubmitButton");
+  if (!toggle || !form || !list) return;
+
+  let users = [];
+
+  function renderToggle(enabled) {
+    toggle.checked = Boolean(enabled);
+    if (toggleLabel) toggleLabel.textContent = enabled ? "On" : "Off";
+  }
+
+  function renderUsers() {
+    if (count) count.textContent = `${users.length} User${users.length === 1 ? "" : "s"}`;
+    if (!users.length) {
+      list.innerHTML = `<span class="settings-empty">No users found.</span>`;
+      return;
+    }
+
+    list.innerHTML = users
+      .map((user) => {
+        const isSelf = Number(user.id) === Number(session.user?.id);
+        const name = getUserDisplayName(user);
+        const actions = isSelf
+          ? `<span class="access-self-note">This is you</span>`
+          : `
+            <button class="settings-edit-btn" type="button" data-user-action="password" data-user-id="${user.id}">Reset Password</button>
+            <button class="settings-edit-btn" type="button" data-user-action="role" data-user-id="${user.id}">Make ${user.role === "admin" ? "Staff" : "Admin"}</button>
+            <button class="settings-edit-btn" type="button" data-user-action="active" data-user-id="${user.id}">${user.isActive ? "Deactivate" : "Activate"}</button>
+            <button class="settings-delete-btn" type="button" data-user-action="delete" data-user-id="${user.id}">Delete</button>
+          `;
+        return `
+          <article class="access-user-row${user.isActive ? "" : " is-inactive"}">
+            <div class="access-user-main">
+              <div class="user-avatar">${escapeHtml(name.charAt(0).toUpperCase())}</div>
+              <div class="access-user-copy">
+                <strong>${escapeHtml(name)}</strong>
+                <span>@${escapeHtml(user.username)} · ${escapeHtml(String(user.entryCount || 0))} entries</span>
+              </div>
+              <span class="role-badge ${user.role}">${user.role === "admin" ? "Admin" : "Staff"}</span>
+              ${user.isActive ? "" : `<span class="status-chip review">Inactive</span>`}
+            </div>
+            <div class="settings-action-group">${actions}</div>
+          </article>
+        `;
+      })
+      .join("");
+  }
+
+  async function refreshAccessView() {
+    if (!isAdmin()) return;
+    const [settings, response] = await Promise.all([
+      apiRequest("/access/settings"),
+      apiRequest("/access/users"),
+    ]);
+    renderToggle(settings.staffCanEdit);
+    users = response.items || [];
+    renderUsers();
+  }
+
+  async function runUserAction(action, userId) {
+    const user = users.find((item) => String(item.id) === String(userId));
+    if (!user) return;
+    const name = getUserDisplayName(user);
+
+    try {
+      if (action === "password") {
+        const password = window.prompt(`New password for ${name} (minimum 4 characters):`);
+        if (!password) return;
+        await apiRequest(`/access/users/${user.id}/password`, { method: "PUT", body: { password } });
+        showToast(`Password reset for ${name}.`);
+        return;
+      }
+      if (action === "role") {
+        const role = user.role === "admin" ? "staff" : "admin";
+        if (!window.confirm(`Change ${name} to ${role}?`)) return;
+        await apiRequest(`/access/users/${user.id}`, { method: "PUT", body: { role } });
+        showToast(`${name} is now ${role}.`);
+      }
+      if (action === "active") {
+        await apiRequest(`/access/users/${user.id}`, { method: "PUT", body: { isActive: !user.isActive } });
+        showToast(user.isActive ? `${name} can no longer sign in.` : `${name} can sign in again.`);
+      }
+      if (action === "delete") {
+        if (!window.confirm(`Delete user ${name}? Entries they made are kept.`)) return;
+        await apiRequest(`/access/users/${user.id}`, { method: "DELETE" });
+        showToast(`${name} deleted.`);
+      }
+      await refreshAccessView();
+    } catch (error) {
+      notifyError(error);
+    }
+  }
+
+  toggle.addEventListener("change", async () => {
+    const enabled = toggle.checked;
+    toggle.disabled = true;
+    try {
+      const settings = await apiRequest("/access/settings", { method: "PUT", body: { staffCanEdit: enabled } });
+      renderToggle(settings.staffCanEdit);
+      if (session.permissions) session.permissions.staffCanEdit = settings.staffCanEdit;
+      showToast(settings.staffCanEdit ? "Staff can now edit their own entries." : "Staff editing turned off.");
+    } catch (error) {
+      renderToggle(!enabled);
+      notifyError(error);
+    } finally {
+      toggle.disabled = false;
+    }
+  });
+
+  list.addEventListener("click", (event) => {
+    const button = event.target.closest("[data-user-action]");
+    if (button) runUserAction(button.dataset.userAction, button.dataset.userId);
+  });
+
+  form.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const body = {
+      fullName: document.getElementById("accessFullNameInput").value.trim(),
+      username: document.getElementById("accessUsernameInput").value.trim(),
+      password: document.getElementById("accessPasswordInput").value,
+      role: document.getElementById("accessRoleInput").value,
+    };
+    if (!body.username || !body.password) {
+      showToast("Username and password are required.", "error");
+      return;
+    }
+
+    submitButton.disabled = true;
+    try {
+      await apiRequest("/access/users", { method: "POST", body });
+      form.reset();
+      showToast(`${body.role === "admin" ? "Admin" : "Staff"} account created for ${body.fullName || body.username}.`);
+      await refreshAccessView();
+    } catch (error) {
+      notifyError(error);
+    } finally {
+      submitButton.disabled = false;
+    }
+  });
+
+  window.refreshAccessView = refreshAccessView;
+}
+
+function getFlowFromModule(moduleKey) {
+  return moduleKey === "selling" ? "sales" : "purchase";
+}
+
+function getFlowFromPartyView(view) {
+  return view === "company" ? "sales" : "purchase";
+}
+
 function initializeReportsModule() {
   const viewButtons = [...document.querySelectorAll("[data-report-view]")];
+  const groupButtons = [...document.querySelectorAll("[data-report-group]")];
   const searchInput = document.getElementById("reportsSearchInput");
   const slipSearchInput = document.getElementById("reportsSlipSearchInput");
   const partyFilter = document.getElementById("reportsPartyFilter");
@@ -2344,6 +2644,7 @@ function initializeReportsModule() {
     printButton: document.getElementById("reportPrintButton"),
     editButton: document.getElementById("reportEditButton"),
     deleteButton: document.getElementById("reportDeleteButton"),
+    editLockedNote: document.getElementById("reportEditLockedNote"),
   };
 
   const printRefs = {
@@ -2382,9 +2683,21 @@ function initializeReportsModule() {
   let selectedReportId = null;
 
   function getViewLabel(view) {
-    if (view === "farmers") return "Farmer Reports";
-    if (view === "suppliers") return "Supplier Reports";
-    return "Company Reports";
+    if (!isAdmin()) return "My Godown Entries";
+    if (view === "farmers") return "Purchase · Farmer Reports";
+    if (view === "suppliers") return "Purchase · Supplier Reports";
+    return "Sales · Company Reports";
+  }
+
+  function renderGroupCounts() {
+    const counts = { purchase: 0, sales: 0 };
+    reportStore.forEach((record) => {
+      counts[getFlowFromModule(record.moduleKey)] += 1;
+    });
+    document.querySelectorAll("[data-group-count]").forEach((element) => {
+      const count = counts[element.dataset.groupCount] || 0;
+      element.textContent = `${count} entr${count === 1 ? "y" : "ies"}`;
+    });
   }
 
   function getPartyPlaceholder(view) {
@@ -2505,7 +2818,15 @@ function initializeReportsModule() {
     refreshSearchableSelect(partyFilter);
   }
 
+  function canEditRecord(record) {
+    if (!canEditEntries()) return false;
+    return isAdmin() || record.moduleKey === "godown";
+  }
+
   function renderModal(record) {
+    const editable = canEditRecord(record);
+    detailRefs.editButton?.classList.toggle("hidden", !editable);
+    detailRefs.editLockedNote?.classList.toggle("hidden", editable || isAdmin());
     detailRefs.type.textContent = record.typeLabel;
     detailRefs.name.textContent = record.partyName;
     detailRefs.meta.textContent = record.dateDisplay;
@@ -2555,6 +2876,7 @@ function initializeReportsModule() {
 
   function renderCards() {
     renderPartyOptions();
+    renderGroupCounts();
     const records = getFilteredReports();
     listLabel.textContent = getViewLabel(activeView);
     listCount.textContent = `${records.length} Result${records.length === 1 ? "" : "s"}`;
@@ -2564,19 +2886,21 @@ function initializeReportsModule() {
       return;
     }
 
+    const actionHint = isAdmin() ? "View, print or edit" : canEditEntries() ? "View, print or edit bill" : "View & print bill";
     cardGrid.innerHTML = records
       .map((record) => `
-        <button class="reports-record-card" type="button" data-report-id="${escapeHtml(record.id)}">
+        <button class="reports-record-card is-${getFlowFromModule(record.moduleKey)}" type="button" data-report-id="${escapeHtml(record.id)}">
           <div class="reports-card-top">
             <div>
               <strong>${escapeHtml(record.partyName)}</strong>
               <span class="reports-card-tag">${escapeHtml(record.typeLabel)}</span>
             </div>
-            <span>${escapeHtml(record.slipNumber)}</span>
+            <span class="reports-card-slip">${escapeHtml(record.slipNumber)}</span>
           </div>
           <div class="reports-card-meta">
             <span>${escapeHtml(record.dateDisplay)}</span>
             <span>${escapeHtml(record.vehicleNumber || "-")}</span>
+            ${isAdmin() && record.createdByName ? `<span>By ${escapeHtml(record.createdByName)}</span>` : ""}
           </div>
           <div class="reports-card-grid">
             <div>
@@ -2588,7 +2912,7 @@ function initializeReportsModule() {
               <strong>${formatMoney(record.totalAmount)}</strong>
             </div>
           </div>
-          <span class="reports-card-link">Open details and download PDF</span>
+          <span class="reports-card-link">${actionHint} &rarr;</span>
         </button>
       `)
       .join("");
@@ -2793,14 +3117,28 @@ function initializeReportsModule() {
   function switchView(view) {
     activeView = view;
     closeModal();
+    const group = getFlowFromPartyView(view);
+    groupButtons.forEach((button) => {
+      button.classList.toggle("active", button.dataset.reportGroup === group);
+    });
     viewButtons.forEach((button) => {
       button.classList.toggle("active", button.dataset.reportView === view);
+      button.classList.toggle("hidden", button.dataset.group !== group);
     });
     renderCards();
   }
 
+  function switchGroup(group) {
+    if (getFlowFromPartyView(activeView) === group) return;
+    const firstView = viewButtons.find((button) => button.dataset.group === group);
+    if (firstView) switchView(firstView.dataset.reportView);
+  }
+
   viewButtons.forEach((button) => {
     button.addEventListener("click", () => switchView(button.dataset.reportView));
+  });
+  groupButtons.forEach((button) => {
+    button.addEventListener("click", () => switchGroup(button.dataset.reportGroup));
   });
   searchInput.addEventListener("input", renderCards);
   slipSearchInput.addEventListener("input", renderCards);
@@ -2818,11 +3156,23 @@ function initializeReportsModule() {
   });
 
   window.refreshReportsView = renderCards;
+  window.applyReportsRole = () => {
+    // Staff only ever have godown (supplier) entries of their own.
+    if (!isAdmin()) {
+      activeView = "suppliers";
+    }
+    const heading = document.getElementById("reportsHeading");
+    const kicker = document.getElementById("reportsKicker");
+    if (heading) heading.textContent = isAdmin() ? "Reports" : "My Godown Entries";
+    if (kicker) kicker.textContent = isAdmin() ? "Records Desk" : "Your Bills";
+    switchView(activeView);
+  };
   renderCards();
 }
 
 function initializePaymentsModule() {
   const viewButtons = [...document.querySelectorAll("[data-payment-view]")];
+  const groupButtons = [...document.querySelectorAll("[data-payment-group]")];
   const searchInput = document.getElementById("paymentsSearchInput");
   const slipSearchInput = document.getElementById("paymentsSlipSearchInput");
   const listLabel = document.getElementById("paymentsListLabel");
@@ -2860,9 +3210,9 @@ function initializePaymentsModule() {
   let editingPaymentId = null;
 
   function getViewLabel(view) {
-    if (view === "farmers") return "Farmer Ledgers";
-    if (view === "suppliers") return "Supplier Ledgers";
-    return "Company Ledgers";
+    if (view === "farmers") return "Payables · Farmer Ledgers";
+    if (view === "suppliers") return "Payables · Supplier Ledgers";
+    return "Receivables · Company Ledgers";
   }
 
   function getFilteredOrders() {
@@ -3091,6 +3441,7 @@ function initializePaymentsModule() {
   }
 
   async function renderCards() {
+    if (!canAccessView("payments")) return;
     try {
       await loadPaymentOrders();
       const orders = getFilteredOrders();
@@ -3104,7 +3455,7 @@ function initializePaymentsModule() {
 
       cardGrid.innerHTML = orders
         .map((order) => `
-          <button class="payments-record-card" type="button" data-payment-party="${escapeHtml(order.partyName)}">
+          <button class="payments-record-card is-${getFlowFromPartyView(activeView)}" type="button" data-payment-party="${escapeHtml(order.partyName)}">
             <div class="payments-card-top">
               <strong>${escapeHtml(order.partyName)}</strong>
               <span>${escapeHtml(String(order.orderCount || 0))} orders</span>
@@ -3146,8 +3497,13 @@ function initializePaymentsModule() {
   function switchView(view) {
     activeView = view;
     selectedPartyName = null;
+    const group = getFlowFromPartyView(view);
+    groupButtons.forEach((button) => {
+      button.classList.toggle("active", button.dataset.paymentGroup === group);
+    });
     viewButtons.forEach((button) => {
       button.classList.toggle("active", button.dataset.paymentView === view);
+      button.classList.toggle("hidden", button.dataset.group !== group);
     });
     renderCards();
   }
@@ -3156,6 +3512,15 @@ function initializePaymentsModule() {
     button.addEventListener("click", () => {
       closeModal();
       switchView(button.dataset.paymentView);
+    });
+  });
+  groupButtons.forEach((button) => {
+    button.addEventListener("click", () => {
+      if (getFlowFromPartyView(activeView) === button.dataset.paymentGroup) return;
+      const firstView = viewButtons.find((item) => item.dataset.group === button.dataset.paymentGroup);
+      if (!firstView) return;
+      closeModal();
+      switchView(firstView.dataset.paymentView);
     });
   });
 
@@ -3240,6 +3605,10 @@ function initializePaymentsModule() {
   }
 
   window.refreshPaymentsView = renderCards;
+  window.openPaymentsGroup = (group) => {
+    const firstView = viewButtons.find((item) => item.dataset.group === group);
+    if (firstView) switchView(firstView.dataset.paymentView);
+  };
   switchView(activeView);
 }
 
@@ -3252,6 +3621,7 @@ initializeSettingsModule();
 initializeAccountSettings();
 initializeReportsModule();
 initializePaymentsModule();
+initializeAccessModule();
 initializeAuthModule();
 activateView("dashboard");
 setBackendStatus("loading");
@@ -3263,8 +3633,9 @@ async function initializeAppData() {
       loadSettingsData(),
       loadReportsData(),
       loadDashboardData(),
+      isAdmin() && typeof window.refreshAccessView === "function" ? window.refreshAccessView() : null,
     ]);
-    if (typeof window.refreshPaymentsView === "function") {
+    if (canAccessView("payments") && typeof window.refreshPaymentsView === "function") {
       await window.refreshPaymentsView();
     }
     setBackendStatus("connected");

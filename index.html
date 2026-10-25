@@ -7,7 +7,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
       rel="stylesheet"
     />
     <link rel="stylesheet" href="style.css" />
@@ -17,9 +17,10 @@
       <aside class="sidebar" id="sidebar">
         <div class="sidebar-top">
           <div class="brand-block">
-            <div class="brand-mark">MLT</div>
+            <div class="brand-mark">ML</div>
             <div class="brand-copy">
-              <strong>MAA LAXMI TRADERS</strong>
+              <strong>Maa Laxmi Traders</strong>
+              <span>Paddy Management</span>
             </div>
           </div>
           <button class="sidebar-toggle" id="sidebarToggle" type="button" aria-label="Toggle sidebar">
@@ -29,41 +30,62 @@
           </button>
         </div>
 
-
         <nav class="sidebar-nav" aria-label="Main navigation">
-          <button class="nav-item active" type="button" data-view="dashboard">
-            <span class="nav-icon">📊</span>
-            <span class="nav-label">Dashboard</span>
-          </button>
-          <button class="nav-item" type="button" data-view="godown-entry">
-            <span class="nav-icon">🚚</span>
-            <span class="nav-label">Godown Entry</span>
-          </button>
-          <button class="nav-item" type="button" data-view="home-entry">
-            <span class="nav-icon">📦</span>
-            <span class="nav-label">Home Purchase Entry</span>
-          </button>
-          <button class="nav-item" type="button" data-view="selling">
-            <span class="nav-icon">🛒</span>
-            <span class="nav-label">Selling</span>
-          </button>
-          <button class="nav-item" type="button" data-view="reports">
-            <span class="nav-icon">📃</span>
-            <span class="nav-label">Reports</span>
-          </button>
-          <button class="nav-item" type="button" data-view="payments">
-            <span class="nav-icon">💰</span>
-            <span class="nav-label">Payments</span>
-          </button>
-          <button class="nav-item" type="button" data-view="settings">
-            <span class="nav-icon">⚙️</span>
-            <span class="nav-label">Settings</span>
-          </button>
+          <div class="nav-group">
+            <span class="nav-group-label">Overview</span>
+            <button class="nav-item" type="button" data-view="dashboard">
+              <span class="nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></svg></span>
+              <span class="nav-label">Dashboard</span>
+            </button>
+          </div>
+          <div class="nav-group nav-group-purchase">
+            <span class="nav-group-label">Purchase</span>
+            <button class="nav-item" type="button" data-view="godown-entry">
+              <span class="nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h11v10H3z"/><path d="M14 9h4l3 3v4h-7"/><circle cx="7" cy="17.5" r="1.8"/><circle cx="17" cy="17.5" r="1.8"/></svg></span>
+              <span class="nav-label">Godown Purchase</span>
+            </button>
+            <button class="nav-item" type="button" data-view="home-entry">
+              <span class="nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 10.5 12 4l9 6.5"/><path d="M5 9.5V20h14V9.5"/><path d="M10 20v-5h4v5"/></svg></span>
+              <span class="nav-label">Home Purchase</span>
+            </button>
+          </div>
+          <div class="nav-group nav-group-sales">
+            <span class="nav-group-label">Sales</span>
+            <button class="nav-item" type="button" data-view="selling">
+              <span class="nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.6 13.4 13.4 20.6a2 2 0 0 1-2.8 0L3 13V3h10l7.6 7.6a2 2 0 0 1 0 2.8Z"/><circle cx="7.5" cy="7.5" r="1.5"/></svg></span>
+              <span class="nav-label">Sales Entry</span>
+            </button>
+          </div>
+          <div class="nav-group">
+            <span class="nav-group-label">Records</span>
+            <button class="nav-item" type="button" data-view="reports">
+              <span class="nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><path d="M14 3v6h6"/><path d="M8 13h8M8 17h5"/></svg></span>
+              <span class="nav-label">Reports</span>
+            </button>
+            <button class="nav-item" type="button" data-view="payments">
+              <span class="nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="6" width="18" height="14" rx="2"/><path d="M3 10h18"/><path d="M16 15h2"/><path d="M6 6V5a2 2 0 0 1 2-2h9"/></svg></span>
+              <span class="nav-label">Payments</span>
+            </button>
+          </div>
+          <div class="nav-group">
+            <span class="nav-group-label">System</span>
+            <button class="nav-item" type="button" data-view="settings">
+              <span class="nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1Z"/></svg></span>
+              <span class="nav-label">Settings</span>
+            </button>
+          </div>
         </nav>
 
         <div class="sidebar-bottom">
+          <div class="user-card">
+            <div class="user-avatar" id="sidebarUserAvatar">?</div>
+            <div class="user-meta">
+              <strong id="sidebarUserName">-</strong>
+              <span class="role-badge" id="sidebarUserRole">-</span>
+            </div>
+          </div>
           <button class="logout-btn" id="logoutButton" type="button">
-            <span class="nav-icon">🚪</span>
+            <span class="nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="m16 17 5-5-5-5"/><path d="M21 12H9"/></svg></span>
             <span class="nav-label">Logout</span>
           </button>
         </div>
@@ -84,93 +106,89 @@
         <main class="content-scroller">
           <section class="view active" data-view-panel="dashboard">
             <div class="dashboard-grid stats-grid">
-              <article class="card stat-card">
-                <p class="card-kicker">Today</p>
-                <h2>Today's Purchases</h2>
-                <strong class="stat-value">Rs 2,48,500</strong>
-                <span class="stat-meta">34 supplier entries recorded</span>
+              <article class="card stat-card stat-purchase">
+                <p class="card-kicker">Today's Purchases</p>
+                <strong class="stat-value" id="statTodaysPurchases">Rs 0.00</strong>
+                <span class="stat-meta">Godown + home, today</span>
               </article>
-              <article class="card stat-card">
-                <p class="card-kicker">Today</p>
-                <h2>Today's Sales</h2>
-                <strong class="stat-value">Rs 1,72,000</strong>
-                <span class="stat-meta">12 outgoing slips processed</span>
+              <article class="card stat-card stat-sales">
+                <p class="card-kicker">Today's Sales</p>
+                <strong class="stat-value" id="statTodaysSales">Rs 0.00</strong>
+                <span class="stat-meta">To companies, today</span>
               </article>
-              <article class="card stat-card">
-                <p class="card-kicker">Finance</p>
-                <h2>Pending Payments</h2>
-                <strong class="stat-value">Rs 84,300</strong>
-                <span class="stat-meta">8 parties awaiting settlement</span>
+              <article class="card stat-card stat-bags">
+                <p class="card-kicker">Bags Purchased</p>
+                <strong class="stat-value" id="statTotalBags">0</strong>
+                <span class="stat-meta">Godown + home, all time</span>
               </article>
-              <article class="card stat-card">
-                <p class="card-kicker">Stock</p>
-                <h2>Total Bags Purchased</h2>
-                <strong class="stat-value">1,280</strong>
-                <span class="stat-meta">Across godown and home purchase channels</span>
-              </article>
+              <button class="card stat-card stat-payable" type="button" data-finance-open="purchase" title="Open payables">
+                <p class="card-kicker">You Owe</p>
+                <strong class="stat-value" id="statPayableAmount">Rs 0.00</strong>
+                <span class="stat-meta" id="statPayableMeta">-</span>
+              </button>
+              <button class="card stat-card stat-receivable" type="button" data-finance-open="sales" title="Open receivables">
+                <p class="card-kicker">You Will Receive</p>
+                <strong class="stat-value" id="statReceivableAmount">Rs 0.00</strong>
+                <span class="stat-meta" id="statReceivableMeta">-</span>
+              </button>
             </div>
 
-            <article class="card dashboard-table-card">
-              <div class="card-head">
+            <div class="dashboard-split">
+            <article class="card dashboard-table-card is-purchase">
+              <div class="card-head card-head-inline">
                 <div>
-                  <p class="card-kicker">Recent Activity</p>
-                  <h2>Recent Transactions</h2>
+                  <p class="card-kicker">Purchase</p>
+                  <h2>Recent Purchases</h2>
                 </div>
+                <span class="flow-badge purchase">Purchase</span>
               </div>
               <div class="table-wrap">
-                <table class="entries-table dashboard-table">
+                <table class="data-table">
                   <thead>
                     <tr>
-                      <th>Time</th>
+                      <th>Date</th>
                       <th>Slip</th>
                       <th>Type</th>
-                      <th>Party</th>
-                      <th>Bags</th>
-                      <th>Amount</th>
+                      <th>Supplier / Farmer</th>
+                      <th class="num">Bags</th>
+                      <th class="num">Amount</th>
                       <th>Status</th>
                     </tr>
                   </thead>
-                  <tbody>
-                    <tr>
-                      <td>09:15 AM</td>
-                      <td>GD-1042</td>
-                      <td>Godown Purchase</td>
-                      <td>ABC Traders</td>
-                      <td>84</td>
-                      <td>Rs 68,340.00</td>
-                      <td><span class="status-chip success">Settled</span></td>
-                    </tr>
-                    <tr>
-                      <td>10:40 AM</td>
-                      <td>HM-207</td>
-                      <td>Home Purchase</td>
-                      <td>Farmer B</td>
-                      <td>36</td>
-                      <td>Rs 24,710.00</td>
-                      <td><span class="status-chip pending">Advance Pending</span></td>
-                    </tr>
-                    <tr>
-                      <td>12:05 PM</td>
-                      <td>SL-519</td>
-                      <td>Selling</td>
-                      <td>Eastern Rice Mill</td>
-                      <td>50</td>
-                      <td>Rs 42,000.00</td>
-                      <td><span class="status-chip success">Completed</span></td>
-                    </tr>
-                    <tr>
-                      <td>02:20 PM</td>
-                      <td>GD-1043</td>
-                      <td>Godown Purchase</td>
-                      <td>Farmer Group A</td>
-                      <td>60</td>
-                      <td>Rs 47,250.00</td>
-                      <td><span class="status-chip review">Under Review</span></td>
-                    </tr>
+                  <tbody id="dashboardPurchaseBody">
+                    <tr><td colspan="7" class="table-empty">Loading...</td></tr>
                   </tbody>
                 </table>
               </div>
             </article>
+            <article class="card dashboard-table-card is-sales">
+              <div class="card-head card-head-inline">
+                <div>
+                  <p class="card-kicker">Sales</p>
+                  <h2>Recent Sales</h2>
+                </div>
+                <span class="flow-badge sales">Sales</span>
+              </div>
+              <div class="table-wrap">
+                <table class="data-table">
+                  <thead>
+                    <tr>
+                      <th>Date</th>
+                      <th>Slip</th>
+                      <th>Type</th>
+                      <th>Company</th>
+                      <th class="num">Bags</th>
+                      <th class="num">Amount</th>
+                      <th>Status</th>
+                    </tr>
+                  </thead>
+                  <tbody id="dashboardSalesBody">
+                    <tr><td colspan="7" class="table-empty">Loading...</td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </article>
+            </div>
           </section>
 
           <section class="view" data-view-panel="godown-entry">
@@ -343,7 +361,7 @@
                       <p class="card-kicker">Live Summary</p>
                       <h2>Purchase Snapshot</h2>
                     </div>
-                    <span class="summary-pill">Auto Updated</span>
+                    <span class="flow-badge purchase">Purchase</span>
                   </div>
 
                   <div class="summary-meta">
@@ -563,7 +581,7 @@
                       <p class="card-kicker">Live Summary</p>
                       <h2>Home Purchase Snapshot</h2>
                     </div>
-                    <span class="summary-pill">Auto Updated</span>
+                    <span class="flow-badge purchase">Purchase</span>
                   </div>
 
                   <div class="summary-meta">
@@ -759,7 +777,7 @@
                     <div class="card-head card-head-inline">
                       <div>
                         <p class="card-kicker">Section 3</p>
-                        <h2>Selling Entries</h2>
+                        <h2>Sales Entries</h2>
                       </div>
                     </div>
 
@@ -822,9 +840,9 @@
                   <div class="summary-head">
                     <div>
                       <p class="card-kicker">Live Summary</p>
-                      <h2>Selling Snapshot</h2>
+                      <h2>Sales Snapshot</h2>
                     </div>
-                    <span class="summary-pill">Auto Updated</span>
+                    <span class="flow-badge sales">Sales</span>
                   </div>
 
                   <div class="summary-meta">
@@ -929,16 +947,26 @@
               <article class="card reports-toolbar-card">
                 <div class="card-head reports-toolbar-head">
                   <div>
-                    <p class="card-kicker">Records Desk</p>
-                    <h2>Reports</h2>
+                    <p class="card-kicker" id="reportsKicker">Records Desk</p>
+                    <h2 id="reportsHeading">Reports</h2>
                   </div>
-                  <span class="summary-pill">Print Ready</span>
                 </div>
 
-                <div class="reports-view-switcher" role="tablist" aria-label="Report views">
-                  <button class="reports-view-btn active" type="button" data-report-view="farmers">Farmers</button>
-                  <button class="reports-view-btn" type="button" data-report-view="suppliers">Suppliers</button>
-                  <button class="reports-view-btn" type="button" data-report-view="company">Company</button>
+                <div class="group-switcher" role="tablist" aria-label="Report groups" data-admin-only>
+                  <button class="group-btn purchase active" type="button" data-report-group="purchase">
+                    <span class="group-btn-label">Purchase Records</span>
+                    <span class="group-btn-meta" data-group-count="purchase">0 entries</span>
+                  </button>
+                  <button class="group-btn sales" type="button" data-report-group="sales">
+                    <span class="group-btn-label">Sales Records</span>
+                    <span class="group-btn-meta" data-group-count="sales">0 entries</span>
+                  </button>
+                </div>
+
+                <div class="reports-view-switcher" role="tablist" aria-label="Report views" data-admin-only>
+                  <button class="reports-view-btn active" type="button" data-report-view="farmers" data-group="purchase">Farmers · Home Purchase</button>
+                  <button class="reports-view-btn" type="button" data-report-view="suppliers" data-group="purchase">Suppliers · Godown Purchase</button>
+                  <button class="reports-view-btn hidden" type="button" data-report-view="company" data-group="sales">Companies · Sales</button>
                 </div>
 
                 <div class="toolbar-search-row">
@@ -972,7 +1000,7 @@
 
                   <div class="reports-toolbar-actions">
                     <button class="ghost-btn" id="reportsClearFiltersButton" type="button">Clear Filters</button>
-                    <button class="primary-btn" id="reportsExportStatementButton" type="button">Export Party Statement</button>
+                    <button class="primary-btn" id="reportsExportStatementButton" type="button" data-admin-only>Export Party Statement</button>
                   </div>
                 </div>
               </article>
@@ -1050,14 +1078,15 @@
                     <div class="card-head card-head-inline reports-subsection-head">
                       <div>
                         <p class="card-kicker">Action</p>
-                        <h2>Export Report</h2>
+                        <h2>Print &amp; Actions</h2>
                       </div>
                     </div>
                     <div class="reports-actions">
-                      <button class="primary-btn" id="reportPrintButton" type="button">Download Slip PDF</button>
+                      <button class="primary-btn" id="reportPrintButton" type="button">Print Bill / PDF</button>
                       <button class="secondary-btn" id="reportEditButton" type="button">Edit Entry</button>
-                      <button class="danger-btn" id="reportDeleteButton" type="button">Delete Entry</button>
+                      <button class="danger-btn" id="reportDeleteButton" type="button" data-admin-only>Delete Entry</button>
                     </div>
+                    <p class="field-note hidden" id="reportEditLockedNote">Editing is turned off by the admin. You can still view and print this bill.</p>
                   </div>
                 </div>
               </article>
@@ -1183,13 +1212,23 @@
                     <p class="card-kicker">Settlement Desk</p>
                     <h2>Payments</h2>
                   </div>
-                  <span class="summary-pill">Party Ledger Mode</span>
+                </div>
+
+                <div class="group-switcher" role="tablist" aria-label="Payment groups">
+                  <button class="group-btn purchase active" type="button" data-payment-group="purchase">
+                    <span class="group-btn-label">Payables · Purchase</span>
+                    <span class="group-btn-meta">Money we pay farmers &amp; suppliers</span>
+                  </button>
+                  <button class="group-btn sales" type="button" data-payment-group="sales">
+                    <span class="group-btn-label">Receivables · Sales</span>
+                    <span class="group-btn-meta">Money companies pay us</span>
+                  </button>
                 </div>
 
                 <div class="payments-view-switcher" role="tablist" aria-label="Payment views">
-                  <button class="payments-view-btn active" type="button" data-payment-view="farmers">Farmers</button>
-                  <button class="payments-view-btn" type="button" data-payment-view="suppliers">Suppliers</button>
-                  <button class="payments-view-btn" type="button" data-payment-view="company">Company</button>
+                  <button class="payments-view-btn active" type="button" data-payment-view="farmers" data-group="purchase">Farmers</button>
+                  <button class="payments-view-btn" type="button" data-payment-view="suppliers" data-group="purchase">Suppliers</button>
+                  <button class="payments-view-btn hidden" type="button" data-payment-view="company" data-group="sales">Companies</button>
                 </div>
 
                 <div class="toolbar-search-row">
@@ -1339,11 +1378,12 @@
 
               <article class="card settings-shell">
                 <div class="settings-switcher" role="tablist" aria-label="Settings sections">
-                  <button class="settings-switch-btn active" type="button" data-settings-target="rice">Rice</button>
-                  <button class="settings-switch-btn" type="button" data-settings-target="supplier">Supplier</button>
-                  <button class="settings-switch-btn" type="button" data-settings-target="driver">Driver</button>
-                  <button class="settings-switch-btn" type="button" data-settings-target="company">Company</button>
-                  <button class="settings-switch-btn" type="button" data-settings-target="account">Account</button>
+                  <button class="settings-switch-btn active" type="button" data-settings-target="rice" data-admin-only>Rice</button>
+                  <button class="settings-switch-btn" type="button" data-settings-target="supplier" data-admin-only>Supplier</button>
+                  <button class="settings-switch-btn" type="button" data-settings-target="driver" data-admin-only>Driver</button>
+                  <button class="settings-switch-btn" type="button" data-settings-target="company" data-admin-only>Company</button>
+                  <button class="settings-switch-btn" type="button" data-settings-target="access" data-admin-only>Staff &amp; Access</button>
+                  <button class="settings-switch-btn" type="button" data-settings-target="account">My Account</button>
                 </div>
 
                 <section class="settings-panel active" data-settings-panel="rice">
@@ -1491,6 +1531,84 @@
                   </div>
                 </section>
 
+                <section class="settings-panel" data-settings-panel="access">
+                  <div class="card-head card-head-inline">
+                    <div>
+                      <p class="card-kicker">Access Control</p>
+                      <h2>Staff &amp; Permissions</h2>
+                    </div>
+                  </div>
+
+                  <div class="access-toggle-card">
+                    <div class="access-toggle-copy">
+                      <strong>Allow staff to edit their entries</strong>
+                      <p>When on, staff can reopen the godown entries they created and update them. Staff can never delete entries or see other people's entries.</p>
+                    </div>
+                    <label class="switch" for="accessStaffCanEdit">
+                      <input type="checkbox" id="accessStaffCanEdit" />
+                      <span class="switch-track" aria-hidden="true"></span>
+                      <span class="switch-state" id="accessStaffCanEditLabel">Off</span>
+                    </label>
+                  </div>
+
+                  <div class="access-role-grid">
+                    <article class="access-role-card admin">
+                      <span class="role-badge admin">Admin</span>
+                      <ul>
+                        <li>All purchase &amp; sales entry modules</li>
+                        <li>Reports, party statements and payments</li>
+                        <li>Edit and delete any entry</li>
+                        <li>Master data, staff accounts and permissions</li>
+                      </ul>
+                    </article>
+                    <article class="access-role-card staff">
+                      <span class="role-badge staff">Staff</span>
+                      <ul>
+                        <li>Add godown purchase entries</li>
+                        <li>View &amp; print bills they entered</li>
+                        <li>Edit own entries only when the switch above is on</li>
+                        <li>No delete, payments, dashboard or other modules</li>
+                      </ul>
+                    </article>
+                  </div>
+
+                  <form class="settings-form" id="accessUserForm" novalidate>
+                    <p class="settings-form-title">Add a user</p>
+                    <div class="form-grid two-col">
+                      <label class="field">
+                        <span>Full Name</span>
+                        <input type="text" id="accessFullNameInput" placeholder="e.g. Ramesh Kumar" />
+                      </label>
+                      <label class="field">
+                        <span>Username <em>*</em></span>
+                        <input type="text" id="accessUsernameInput" placeholder="e.g. ramesh" autocomplete="off" required />
+                      </label>
+                      <label class="field">
+                        <span>Password <em>*</em></span>
+                        <input type="password" id="accessPasswordInput" placeholder="Minimum 4 characters" autocomplete="new-password" minlength="4" required />
+                      </label>
+                      <label class="field">
+                        <span>Role</span>
+                        <select id="accessRoleInput">
+                          <option value="staff">Staff</option>
+                          <option value="admin">Admin</option>
+                        </select>
+                      </label>
+                    </div>
+                    <div class="settings-form-actions">
+                      <button class="primary-btn" id="accessUserSubmitButton" type="submit">Add User</button>
+                    </div>
+                  </form>
+
+                  <div class="settings-list-block">
+                    <div class="settings-list-head">
+                      <span>All Users</span>
+                      <strong id="accessUserCount">0 Users</strong>
+                    </div>
+                    <div class="access-user-list" id="accessUserList"></div>
+                  </div>
+                </section>
+
                 <section class="settings-panel" data-settings-panel="account">
                   <div class="card-head card-head-inline">
                     <div>
@@ -1577,9 +1695,15 @@
 
     <div class="login-overlay hidden" id="loginOverlay" role="dialog" aria-modal="true" aria-label="Sign in">
       <article class="login-card">
-        <p class="card-kicker">MAA LAXMI TRADERS</p>
-        <h2>Sign in</h2>
-        <p class="page-copy">Enter your username and password to access the dashboard.</p>
+        <div class="login-brand">
+          <div class="brand-mark">ML</div>
+          <div>
+            <strong>Maa Laxmi Traders</strong>
+            <span>Paddy Management</span>
+          </div>
+        </div>
+        <h2>Welcome back</h2>
+        <p class="page-copy">Sign in with the username and password given by your admin.</p>
         <form id="loginForm" novalidate>
           <label class="field">
             <span>Username</span>
