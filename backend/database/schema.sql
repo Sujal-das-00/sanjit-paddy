@@ -77,14 +77,25 @@ CREATE TABLE IF NOT EXISTS companies (
 CREATE TABLE IF NOT EXISTS users (
   id BIGINT PRIMARY KEY AUTO_INCREMENT,
   username VARCHAR(60) NOT NULL UNIQUE,
+  full_name VARCHAR(120) NULL,
   password_hash VARCHAR(255) NOT NULL,
   password_salt VARCHAR(64) NOT NULL,
+  role ENUM('admin','staff') NOT NULL DEFAULT 'staff',
+  is_active TINYINT(1) NOT NULL DEFAULT 1,
   created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );
 
-INSERT INTO users (username, password_hash, password_salt)
-SELECT 'admin', 'a9f64d7e0c2a4e719871de46c4d73f6684728ccf42cfe2db7b6a767415c571808b3e4631d24f082f5c579b7e6b2a9e28bae7bd3733b8ff521040fda18ec8726a', '9b5d7e3a1c4f6a8b'
+CREATE TABLE IF NOT EXISTS app_settings (
+  setting_key VARCHAR(80) PRIMARY KEY,
+  setting_value VARCHAR(255) NOT NULL,
+  updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+
+INSERT IGNORE INTO app_settings (setting_key, setting_value) VALUES ('staff_can_edit', '0');
+
+INSERT INTO users (username, password_hash, password_salt, role)
+SELECT 'admin', 'a9f64d7e0c2a4e719871de46c4d73f6684728ccf42cfe2db7b6a767415c571808b3e4631d24f082f5c579b7e6b2a9e28bae7bd3733b8ff521040fda18ec8726a', '9b5d7e3a1c4f6a8b', 'admin'
 WHERE NOT EXISTS (SELECT 1 FROM users WHERE username = 'admin');
 
 CREATE TABLE IF NOT EXISTS slips (
@@ -114,6 +125,7 @@ CREATE TABLE IF NOT EXISTS slips (
   purchase_total DECIMAL(12,2) NOT NULL DEFAULT 0,
   final_payable DECIMAL(12,2) NOT NULL DEFAULT 0,
   notes TEXT,
+  created_by BIGINT NULL,
   created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   UNIQUE KEY uniq_module_slip (module_type, slip_number),
@@ -122,6 +134,7 @@ CREATE TABLE IF NOT EXISTS slips (
   KEY idx_slips_supplier (supplier_id),
   KEY idx_slips_company (company_id),
   KEY idx_slips_driver (driver_id),
+  KEY idx_slips_created_by (created_by),
   CONSTRAINT fk_slips_farmer FOREIGN KEY (farmer_id) REFERENCES farmers(id) ON DELETE SET NULL,
   CONSTRAINT fk_slips_supplier FOREIGN KEY (supplier_id) REFERENCES suppliers(id) ON DELETE SET NULL,
   CONSTRAINT fk_slips_company FOREIGN KEY (company_id) REFERENCES companies(id) ON DELETE SET NULL,

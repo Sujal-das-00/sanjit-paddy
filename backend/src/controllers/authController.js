@@ -1,4 +1,5 @@
 const authService = require('../services/authService');
+const accessService = require('../services/accessService');
 const { asyncHandler } = require('../utils/asyncHandler');
 const { AppError } = require('../utils/AppError');
 const { env } = require('../config/env');
@@ -48,7 +49,7 @@ exports.login = asyncHandler(async (req, res) => {
   const { username, password } = req.body || {};
   const user = await authService.login(username, password);
   setAuthCookie(res, user);
-  res.json({ user });
+  res.json({ user, permissions: await accessService.getPermissions(user) });
 });
 
 exports.logout = asyncHandler(async (req, res) => {
@@ -60,7 +61,10 @@ exports.me = asyncHandler(async (req, res) => {
   if (!req.authenticatedUser) {
     throw new AppError('Unauthorized', 401);
   }
-  res.json({ user: req.authenticatedUser });
+  res.json({
+    user: req.authenticatedUser,
+    permissions: await accessService.getPermissions(req.authenticatedUser),
+  });
 });
 
 exports.changePassword = asyncHandler(async (req, res) => {

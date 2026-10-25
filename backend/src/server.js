@@ -1,9 +1,11 @@
 const { createApp } = require('./app');
 const { env } = require('./config/env');
 // const { ensurePaymentSchema } = require('./config/bootstrap');
+const { runPendingMigrations } = require('./config/migrations');
 
 async function startServer() {
   // await ensurePaymentSchema();
+  await runPendingMigrations();
   const app = createApp();
 
   app.listen(env.port, () => {

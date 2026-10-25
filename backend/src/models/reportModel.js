@@ -44,6 +44,11 @@ function buildReportWhere(filters = {}) {
     params.push(filters.slipId);
   }
 
+  if (filters.createdBy) {
+    clauses.push('s.created_by = ?');
+    params.push(filters.createdBy);
+  }
+
   if (filters.search) {
     clauses.push(`(
       s.slip_number LIKE ? OR
@@ -74,8 +79,11 @@ async function listReports(filters = {}) {
         s.advance_payment AS advancePayment,
         s.final_payable AS finalPayable,
         s.purchase_total - s.loading_discount AS reportAmount,
-        ${getPartyNameExpression('s')} AS partyName
+        ${getPartyNameExpression('s')} AS partyName,
+        s.created_by AS createdBy,
+        COALESCE(NULLIF(u.full_name, ''), u.username) AS createdByName
       FROM slips s
+      LEFT JOIN users u ON u.id = s.created_by
       WHERE ${whereSql}
       ORDER BY s.entry_date DESC, s.created_at DESC
     `,
@@ -112,9 +120,11 @@ async function getSlipReport(slipId) {
         s.*,
         s.purchase_total - s.loading_discount AS reportAmount,
         COALESCE(v.paid_amount, 0) AS paidAmount,
-        COALESCE(v.balance_amount, 0) AS balanceAmount
+        COALESCE(v.balance_amount, 0) AS balanceAmount,
+        COALESCE(NULLIF(u.full_name, ''), u.username) AS created_by_name
       FROM slips s
       LEFT JOIN vw_slip_payment_summary v ON v.slip_id = s.id
+      LEFT JOIN users u ON u.id = s.created_by
       WHERE s.id = ?
     `,
     [slipId]

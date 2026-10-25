@@ -1,5 +1,7 @@
 const { env } = require('../config/env');
 const authModel = require('../models/authModel');
+const { toSessionUser, isActiveUser } = require('../services/authService');
+const { ROLES } = require('../config/constants');
 const crypto = require('crypto');
 
 function parseAuthenticatedUserId(token) {
@@ -34,13 +36,29 @@ async function authGuard(req, res, next) {
     return res.status(401).json({ message: 'Unauthorized' });
   }
 
-  const user = await authModel.getUserById(userId);
-  if (!user) {
-    return res.status(401).json({ message: 'Unauthorized' });
-  }
+  try {
+    const user = await authModel.getUserById(userId);
+    // A deactivated account loses access immediately, even with a valid cookie.
+    if (!isActiveUser(user)) {
+      return res.status(401).json({ message: 'Unauthorized' });
+    }
 
-  req.authenticatedUser = { id: user.id, username: user.username };
-  next();
+    req.authenticatedUser = toSessionUser(user);
+    next();
+  } catch (error) {
+    next(error);
+  }
 }
 
-module.exports = { authGuard };
+function requireRole(...roles) {
+  return (req, res, next) => {
+    if (!req.authenticatedUser || !roles.includes(req.authenticatedUser.role)) {
+      return res.status(403).json({ message: 'You do not have permission to perform this action' });
+    }
+    next();
+  };
+}
+
+const requireAdmin = requireRole(ROLES.ADMIN);
+
+module.exports = { authGuard, requireRole, requireAdmin };

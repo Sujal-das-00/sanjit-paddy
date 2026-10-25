@@ -2,6 +2,7 @@ const purchaseModel = require('../models/purchaseModel');
 const { AppError } = require('../utils/AppError');
 const { MODULE_TYPES } = require('../config/constants');
 const { toNumber, toInteger } = require('../utils/number');
+const accessService = require('./accessService');
 
 function validateSlipPayload(moduleType, payload) {
   if (!payload || !String(payload.slipNumber || '').trim()) {
@@ -77,28 +78,64 @@ function normalizeSlipPayload(moduleType, payload) {
   };
 }
 
-async function listSlips(moduleType, filters) {
-  return purchaseModel.listSlips(moduleType, filters);
+function isOwnSlip(slip, user) {
+  return slip.created_by !== null && slip.created_by !== undefined && Number(slip.created_by) === Number(user.id);
 }
 
-async function createSlip(moduleType, payload) {
-  const normalized = normalizeSlipPayload(moduleType, payload);
-  return purchaseModel.createSlip(normalized);
-}
-
-async function getSlipById(slipId) {
-  const record = await purchaseModel.getSlipById(slipId);
-  if (!record) {
+// Staff can only reach slips they created themselves. Answer 404 rather than
+// 403 so staff cannot probe which slip ids exist.
+function assertCanViewSlip(slip, user) {
+  if (!slip || (!accessService.isAdmin(user) && !isOwnSlip(slip, user))) {
     throw new AppError('Slip not found', 404);
   }
+}
+
+async function assertCanEditSlip(slip, user) {
+  assertCanViewSlip(slip, user);
+  if (accessService.isAdmin(user)) return;
+
+  const { staffCanEdit } = await accessService.getAccessSettings();
+  if (!staffCanEdit) {
+    throw new AppError('Editing entries is turned off for staff. Ask the admin to enable it.', 403);
+  }
+  if (slip.module_type !== MODULE_TYPES.GODOWN) {
+    throw new AppError('Staff can only edit godown entries', 403);
+  }
+}
+
+function scopeFiltersToUser(filters = {}, user) {
+  if (accessService.isAdmin(user)) return { ...filters };
+  return { ...filters, createdBy: user.id };
+}
+
+async function listSlips(moduleType, filters, user) {
+  return purchaseModel.listSlips(moduleType, scopeFiltersToUser(filters, user));
+}
+
+async function createSlip(moduleType, payload, user) {
+  const normalized = normalizeSlipPayload(moduleType, payload);
+
+  // Saving an existing slip number overwrites that slip, which would let staff
+  // bypass the edit switch (or overwrite someone else's entry).
+  if (!accessService.isAdmin(user)) {
+    const existing = await purchaseModel.findSlipByNumber(moduleType, normalized.slipNumber);
+    if (existing) {
+      throw new AppError(`Weight number ${normalized.slipNumber} already exists. Use a different number.`, 409);
+    }
+  }
+
+  return purchaseModel.createSlip({ ...normalized, createdBy: user.id });
+}
+
+async function getSlipById(slipId, user) {
+  const record = await purchaseModel.getSlipById(slipId);
+  assertCanViewSlip(record, user);
   return record;
 }
 
-async function updateSlipById(slipId, payload) {
+async function updateSlipById(slipId, payload, user) {
   const current = await purchaseModel.getSlipHeaderById(slipId);
-  if (!current) {
-    throw new AppError('Slip not found', 404);
-  }
+  await assertCanEditSlip(current, user);
 
   const normalized = normalizeSlipPayload(current.module_type || current.moduleType, payload);
   return purchaseModel.updateSlipById(slipId, normalized);
@@ -118,4 +155,6 @@ module.exports = {
   getSlipById,
   updateSlipById,
   deleteSlipById,
+  assertCanViewSlip,
+  scopeFiltersToUser,
 };

@@ -1,8 +1,9 @@
 const reportModel = require('../models/reportModel');
 const { AppError } = require('../utils/AppError');
+const { assertCanViewSlip, scopeFiltersToUser } = require('./purchaseService');
 
-async function listReports(filters) {
-  return reportModel.listReports(filters);
+async function listReports(filters, user) {
+  return reportModel.listReports(scopeFiltersToUser(filters, user));
 }
 
 async function getPartySummary(filters) {
@@ -15,11 +16,12 @@ async function getPartySummary(filters) {
   return reportModel.getPartySummary(filters);
 }
 
-async function getSlipReport(slipId) {
+async function getSlipReport(slipId, user) {
   const record = await reportModel.getSlipReport(slipId);
   if (!record) {
     throw new AppError('Report not found', 404);
   }
+  assertCanViewSlip(record, user);
   return record;
 }
 

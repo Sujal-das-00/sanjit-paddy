@@ -1,5 +1,6 @@
 const settingsService = require('../services/settingsService');
 const { asyncHandler } = require('../utils/asyncHandler');
+const { ROLES } = require('../config/constants');
 
 exports.listRiceTypes = asyncHandler(async (req, res) => {
   res.json({ items: await settingsService.listRiceTypes() });
@@ -26,7 +27,13 @@ exports.createFarmer = asyncHandler(async (req, res) => {
 });
 
 exports.listSuppliers = asyncHandler(async (req, res) => {
-  res.json({ items: await settingsService.listSuppliers() });
+  const items = await settingsService.listSuppliers();
+  if (req.authenticatedUser?.role === ROLES.ADMIN) {
+    res.json({ items });
+    return;
+  }
+  // Staff only need names for the godown form, not PAN / Aadhar / bank accounts.
+  res.json({ items: items.map((item) => ({ id: item.id, name: item.name })) });
 });
 
 exports.createSupplier = asyncHandler(async (req, res) => {

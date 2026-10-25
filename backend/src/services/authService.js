@@ -22,6 +22,19 @@ function createPasswordSalt() {
   return crypto.randomBytes(8).toString('hex');
 }
 
+function toSessionUser(user) {
+  return {
+    id: user.id,
+    username: user.username,
+    fullName: user.full_name || '',
+    role: user.role || 'staff',
+  };
+}
+
+function isActiveUser(user) {
+  return Boolean(user) && Number(user.is_active ?? 1) === 1;
+}
+
 async function login(username, password) {
   const normalizedUsername = normalizeUsername(username);
   if (!normalizedUsername) {
@@ -38,7 +51,11 @@ async function login(username, password) {
     throw new AppError('Invalid username or password', 401);
   }
 
-  return { id: user.id, username: user.username };
+  if (!isActiveUser(user)) {
+    throw new AppError('This account has been deactivated. Contact the admin.', 403);
+  }
+
+  return toSessionUser(user);
 }
 
 async function changePassword(userId, currentPassword, newPassword) {
@@ -55,7 +72,7 @@ async function changePassword(userId, currentPassword, newPassword) {
   const passwordSalt = createPasswordSalt();
   const passwordHash = hashPassword(newPassword, passwordSalt);
   await authModel.updatePassword(user.id, passwordHash, passwordSalt);
-  return { id: user.id, username: user.username };
+  return toSessionUser(user);
 }
 
-module.exports = { login, changePassword, hashPassword, createPasswordSalt };
+module.exports = { login, changePassword, hashPassword, createPasswordSalt, toSessionUser, isActiveUser };

@@ -40,6 +40,11 @@ function buildListWhere(moduleType, filters) {
     params.push(filters.dateTo);
   }
 
+  if (filters.createdBy) {
+    clauses.push('s.created_by = ?');
+    params.push(filters.createdBy);
+  }
+
   if (filters.search) {
     clauses.push(`(
       s.slip_number LIKE ? OR
@@ -143,8 +148,8 @@ async function createSlip(payload) {
             farmer_name_snapshot, supplier_name_snapshot, company_name_snapshot, driver_name_snapshot,
             gross_weight, dust_deduction, moisture_deduction, final_weight, net_weight,
             total_bags, average_weight, moisture_note, loading_discount, advance_payment,
-            purchase_total, final_payable
-          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            purchase_total, final_payable, created_by
+          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         `,
         [
           payload.moduleType,
@@ -171,6 +176,7 @@ async function createSlip(payload) {
           payload.advancePayment,
           payload.purchaseTotal,
           payload.finalPayable,
+          payload.createdBy || null,
         ]
       );
       slipId = slipResult.insertId;
@@ -203,6 +209,14 @@ async function createSlip(payload) {
 
     return getSlipByIdWithConnection(connection, slipId);
   });
+}
+
+async function findSlipByNumber(moduleType, slipNumber) {
+  const rows = await query(
+    'SELECT id, created_by FROM slips WHERE module_type = ? AND slip_number = ? LIMIT 1',
+    [moduleType, slipNumber]
+  );
+  return rows[0] || null;
 }
 
 async function getSlipHeaderById(slipId) {
@@ -322,6 +336,7 @@ module.exports = {
   createSlip,
   getSlipById,
   getSlipHeaderById,
+  findSlipByNumber,
   updateSlipById,
   deleteSlipById,
 };

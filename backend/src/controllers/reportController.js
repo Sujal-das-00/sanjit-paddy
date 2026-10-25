@@ -2,7 +2,7 @@ const reportService = require('../services/reportService');
 const { asyncHandler } = require('../utils/asyncHandler');
 
 exports.listReports = asyncHandler(async (req, res) => {
-  res.json({ items: await reportService.listReports(req.query) });
+  res.json({ items: await reportService.listReports(req.query, req.authenticatedUser) });
 });
 
 exports.getPartySummaryReport = asyncHandler(async (req, res) => {
@@ -10,7 +10,7 @@ exports.getPartySummaryReport = asyncHandler(async (req, res) => {
 });
 
 exports.getSlipReport = asyncHandler(async (req, res) => {
-  res.json(await reportService.getSlipReport(req.params.slipId));
+  res.json(await reportService.getSlipReport(req.params.slipId, req.authenticatedUser));
 });
 
 exports.getPartyStatementReport = asyncHandler(async (req, res) => {
